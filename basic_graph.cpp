@@ -1,4 +1,4 @@
-#include "basic_graph.h"
+﻿#include "basic_graph.h"
 
 using namespace std;
 
@@ -761,17 +761,28 @@ void basic_graph::make_graph_contraction(int from, int to)
 	vector<int>	temp_vertex_col;
 	vector<int>	temp_vertex_raw;
 
+	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	{
+		cout << "The value is out of range" << endl;
+		return;
+	}
+
 	--from;
 	--to;
 
 /*===== if error ===== */
 	if ((matrix.at(from).at(to) == 0) || (matrix.at(to).at(from) == 0))
 	{
-		cout << "Error, we haven't so vertex" << endl;
+		cout << "Error: we haven't so vertex" << endl;
 		return;
 	}
 
-	if (from == to) {
+	if (from == to) 
+	{
+		if (!is_oriented)
+		{
+			matrix.at(from).at(to) -= 1;
+		}
 		matrix.at(from).at(to) -= 1;
 		return;
 	}
@@ -822,16 +833,28 @@ void basic_graph::make_graph_contraction(int from, int to)
 
 void basic_graph::make_vertex_identification(int first, int second)
 {
+	int vert = get_count_vertex();
+
+	if ((first == second) || (first > vert) || (second > vert) || (first < 1) || (second < 1))
+	{
+		cout << "Error: we haven't so vertex" << endl;
+		return;
+	}
+
 	--first;
 	--second;
 
-	int vert = get_count_vertex();
-
-	if ((first == second) || (first >= vert) || (second >= vert))
+	/*
+	Убрать вверху условие
+	if (first == second)
 	{
-		cout << "Error. What's wrong with you?!" << endl;
+		if (!is_oriented)
+		{
+			matrix.at(first).at(second) -= 1;
+		}
+		matrix.at(first).at(second) -= 1;
 		return;
-	}
+	}*/
 
 	for (int i = 0; i < vert; ++i)
 	{
@@ -849,6 +872,12 @@ void basic_graph::make_vertex_identification(int first, int second)
 void basic_graph::make_vertex_dublicate(int number_of_vertex)
 {
 	int vert = get_count_vertex();
+	if ((number_of_vertex > vert) || (number_of_vertex < 1))
+	{
+		cout << "Error: The value is out of range" << endl;
+		return;
+	}
+
 	--number_of_vertex;
 	add_vertex();
 
@@ -872,6 +901,13 @@ void basic_graph::make_vertex_dublicate(int number_of_vertex)
 void basic_graph::make_proliferation_with(int number_of_vertex)
 {
 	int vert = get_count_vertex();
+
+	if ((number_of_vertex > vert) || (number_of_vertex < 1))
+	{
+		cout << "Error: The value is out of range" << endl;
+		return;
+	}
+
 	make_vertex_dublicate(number_of_vertex);
 	--number_of_vertex;
 

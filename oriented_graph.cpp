@@ -108,6 +108,13 @@ int oriented_graph::get_indegree_of(int number_of_vertex)
 
 void oriented_graph::make_graph_subdivision(int from, int to)
 {
+	int vert = get_count_vertex();
+	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	{
+		cout << "The value is out of range" << endl;
+		return;
+	}
+
 	--from;
 	--to;
 
@@ -117,11 +124,17 @@ void oriented_graph::make_graph_subdivision(int from, int to)
 		return;
 	}
 
+	if (from == to)
+	{
+		matrix.at(from).at(to) -= 1;
+		return;
+	}
+
 	basic_graph::add_vertex();
 
 	basic_graph::matrix.at(from).at(to) -= 1;
 
-	int vert = basic_graph::get_count_vertex() - 1;
+	vert = basic_graph::get_count_vertex() - 1;
 
 	basic_graph::matrix.at(from).at(vert) += 1;
 	basic_graph::matrix.at(vert).at(to) += 1;

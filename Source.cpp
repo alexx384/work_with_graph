@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <cstdlib>
 #include "normal_graph.h"
@@ -13,11 +13,21 @@ using namespace std;
 int first(int type_of_graph);
 int second(int type_of_graph);
 
+
+/*##########################################################
+###################### Важно! ############################
+##########################################################
+Что делать с отождествлением петли?
+
+*/
+
+
 int main()
 {
 	//normal_graph new_graph(ADJACENCY_MATR, "first_matrix.txt");
 
 	//oriented_graph new_third(INCIDENCE_MATR, "third_matrix.txt");
+
 
 	int type_of_graph = UNKNOWN_MATRIX;
 

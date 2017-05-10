@@ -237,6 +237,14 @@ void normal_graph::show_degree_sequence()
 
 void normal_graph::make_graph_subdivision(int from, int to)
 {
+	int vert = get_count_vertex();
+
+	if((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	{
+		cout << "The value is out of range" << endl;
+		return;
+	}
+
 	--from;
 	--to;
 
@@ -246,20 +254,24 @@ void normal_graph::make_graph_subdivision(int from, int to)
 		return;
 	}
 
+	if (from == to)
+	{
+		matrix.at(from).at(to) -= 2;
+		return;
+	}
+
 	basic_graph::add_vertex();
 
 	
 	basic_graph::matrix.at(from).at(to) -= 1;
 	basic_graph::matrix.at(to).at(from) -= 1;
 
-	int vert = basic_graph::get_count_vertex() - 1;
+	vert = basic_graph::get_count_vertex() - 1;
 
-	if (from != to) {
+	if (from != to)
+	{
 		basic_graph::matrix.at(from).at(vert) += 1;
 		basic_graph::matrix.at(vert).at(from) += 1;
-	}
-	else {
-		cout << "That is abnormally, but i will do it" << endl;
 	}
 
 	basic_graph::matrix.at(to).at(vert) += 1;
