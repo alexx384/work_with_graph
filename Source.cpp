@@ -149,6 +149,7 @@ int first(int type_of_graph)
 		case 2:	 new_graph.show_count_edge();	break;
 		case 3:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.show_degree_of(user_number);	break;
 		}
@@ -164,10 +165,11 @@ int first(int type_of_graph)
 			cin >> from;
 			cout << endl << "To ";
 			cin >> to;
-			new_graph.show_distance(from - 1, to - 1);	break;
+			new_graph.show_distance(from, to);	break;
 		}
 		case 11:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.show_eccentricity_of(user_number);	break;
 		}
@@ -178,6 +180,7 @@ int first(int type_of_graph)
 		case 16: new_graph.add_vertex();	break;
 		case 17:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.delete_vertex(user_number);	break;
 		}
@@ -187,7 +190,7 @@ int first(int type_of_graph)
 			cin >> from;
 			cout << endl << "To ";
 			cin >> to;
-			new_graph.add_edge(from - 1, to - 1);	break;
+			new_graph.add_edge(from, to);	break;
 		}
 		case 19:
 		{
@@ -195,7 +198,7 @@ int first(int type_of_graph)
 			cin >> from;
 			cout << endl << "To ";
 			cin >> to;
-			new_graph.delete_edge(from - 1, to - 1);	break;
+			new_graph.delete_edge(from, to);	break;
 		}
 		case 20: new_graph.make_graph_addition();	break;
 		case 21:
@@ -224,11 +227,13 @@ int first(int type_of_graph)
 		}
 		case 24:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.make_vertex_dublicate(user_number);	break;
 		}
 		case 25:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.make_proliferation_with(user_number);	break;
 		}
@@ -301,6 +306,7 @@ int second(int type_of_graph)
 		case 2:	 new_graph.show_count_edge();	break;
 		case 3:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.show_degree_of(user_number);	break;
 		}
@@ -316,10 +322,11 @@ int second(int type_of_graph)
 			cin >> from;
 			cout << endl << "To ";
 			cin >> to;
-			new_graph.show_distance(from - 1, to - 1);	break;
+			new_graph.show_distance(from , to);	break;
 		}
 		case 11:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.show_eccentricity_of(user_number);	break;
 		}
@@ -330,6 +337,7 @@ int second(int type_of_graph)
 		case 16: new_graph.add_vertex();	break;
 		case 17:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.delete_vertex(user_number);	break;
 		}
@@ -339,7 +347,7 @@ int second(int type_of_graph)
 			cin >> from;
 			cout << endl << "To ";
 			cin >> to;
-			new_graph.add_edge(from - 1, to - 1);	break;
+			new_graph.add_edge(from, to);	break;
 		}
 		case 19:
 		{
@@ -347,7 +355,7 @@ int second(int type_of_graph)
 			cin >> from;
 			cout << endl << "To ";
 			cin >> to;
-			new_graph.delete_edge(from - 1, to - 1);	break;
+			new_graph.delete_edge(from, to);	break;
 		}
 		case 20: new_graph.make_graph_addition();	break;
 		case 21:
@@ -376,11 +384,13 @@ int second(int type_of_graph)
 		}
 		case 24:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.make_vertex_dublicate(user_number);	break;
 		}
 		case 25:
 		{
+			cout << "Enter the vertex number: ";
 			cin >> user_number;
 			new_graph.make_proliferation_with(user_number);	break;
 		}

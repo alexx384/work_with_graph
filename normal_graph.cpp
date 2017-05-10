@@ -38,6 +38,17 @@ normal_graph::normal_graph(int type_of_graph, char * file_name)
 
 void normal_graph::delete_edge(int from, int to)
 {
+	int vert = get_count_vertex();
+
+	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	{
+		cout << "Error, the value is out of range" << endl;
+		return;
+	}
+
+	--from;
+	--to;
+
 	if (basic_graph::matrix.at(from).at(to) != 0 && basic_graph::matrix.at(to).at(from) != 0)
 	{
 		basic_graph::matrix.at(from).at(to) -= 1;
@@ -49,6 +60,17 @@ void normal_graph::delete_edge(int from, int to)
 
 void normal_graph::add_edge(int from, int to)
 {
+	int vert = get_count_vertex();
+
+	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	{
+		cout << "Error, the value is out of range" << endl;
+		return;
+	}
+
+	--from;
+	--to;
+
 	basic_graph::matrix.at(from).at(to) += 1;
 	basic_graph::matrix.at(to).at(from) += 1;
 }

@@ -430,7 +430,11 @@ void basic_graph::show_isolated_vertex()
 void basic_graph::show_distance(int from, int to)
 {
 	int vert = get_count_vertex();
-	if ((from > vert) || (to > vert)) { cout << "Error, the value is out of range" << endl; return; }
+	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	{ 
+		cout << "Error, the value is out of range" << endl; 
+		return; 
+	}
 
 	if (from == to) { cout << "Error. 'From' and 'to' need to be different" << endl; return; }
 
@@ -443,7 +447,7 @@ void basic_graph::show_distance(int from, int to)
 
 void basic_graph::show_eccentricity_of(int number_of_vertex)
 {
-	cout << "The eccentricity is" << get_eccentricity_of(number_of_vertex-1);
+	cout << "The eccentricity is" << get_eccentricity_of(number_of_vertex - 1) << endl;
 }
 
 void basic_graph::show_length_of_radius()
@@ -454,6 +458,8 @@ void basic_graph::show_length_of_radius()
 	{
 		cout << "The radius is " << radius->at(i).back() << endl;
 	}
+	cout << "Warning: the value might be incorrect, because we couldn't " << endl;
+	cout << "take into account all the connectivity components" << endl;
 	delete radius;
 }
 
@@ -467,6 +473,8 @@ void basic_graph::show_length_of_diameter()
 	}
 	delete diameter;*/
 	cout << "The diameter is " << floyd_alg() << endl;
+	cout << "Warning: the value might be incorrect, because we couldn't " << endl;
+	cout << "take into account all the connectivity components" << endl;
 }
 
 void basic_graph::show_center_number()
@@ -518,6 +526,13 @@ void basic_graph::add_vertex()
 void basic_graph::delete_vertex(int number_of_vertex)
 {
 	int vert = get_count_vertex();
+
+	if (number_of_vertex < 1 || number_of_vertex > vert)
+	{
+		cout << "Error: unable find vertex" << endl;
+		return;
+	}
+
 	--number_of_vertex;
 
 	for (int i = 0; i < vert; ++i)
@@ -529,13 +544,39 @@ void basic_graph::delete_vertex(int number_of_vertex)
 
 void basic_graph::add_edge(int from, int to)
 {
+	int vert = get_count_vertex();
+
+	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	{
+		cout << "Error, the value is out of range" << endl;
+		return;
+	}
+
+	--from;
+	--to;
+
 	matrix.at(from).at(to) += 1;
 }
 
 void basic_graph::delete_edge(int from, int to)
 {
-	if(matrix.at(from).at(to) != 0)
+	int vert = get_count_vertex();
+
+	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	{
+		cout << "Error, the value is out of range" << endl;
+		return;
+	}
+
+	--from;
+	--to;
+
+	if (matrix.at(from).at(to) != 0)
+	{
 		matrix.at(from).at(to) -= 1;
+	} else {
+		cout << "The edge is doesn't exist" << endl;
+	}
 }
 
 std::vector<std::vector<int>> * basic_graph::get_length_of_diameter()
