@@ -9,6 +9,7 @@
 #include <set>
 #include <algorithm>
 #include <queue>
+#include <stack>
 
 #define UNKNOWN_MATRIX 0
 #define ADJACENCY_MATR 1
@@ -47,9 +48,11 @@ public:
 
 //Experimental
 	void BFS(int node_num);
-	void DFS(int node_num, int *used);
+	void DFS(int node_num, int *used, std::queue<int> *path);
 	void DFS_search(int node_start);
 	int floyd_alg();
+	bool topological_sort();
+	bool DFS_for_topological(int node_num, int *color, std::stack<int> *stack_vert);
 
 protected:
 	

@@ -396,9 +396,17 @@ void basic_graph::show_adjacency_list()
 		cout << " {" << row + 1;
 		for (int col = 0; col < vert; ++col)
 		{
-			for (int i = 0; i < matrix.at(row).at(col); ++i)
+			if (!is_oriented && (row == col))
 			{
-				cout << ' ' << col + 1;
+				for (int i = 0; i < matrix.at(row).at(col); i+=2)
+				{
+					cout << ' ' << col + 1;
+				}
+			} else {
+				for (int i = 0; i < matrix.at(row).at(col); ++i)
+				{
+					cout << ' ' << col + 1;
+				}
 			}
 		}
 		cout << '}' << endl;
@@ -777,7 +785,7 @@ void basic_graph::make_graph_contraction(int from, int to)
 		return;
 	}
 
-	if (from == to) 
+	/*if (from == to)
 	{
 		if (!is_oriented)
 		{
@@ -785,7 +793,7 @@ void basic_graph::make_graph_contraction(int from, int to)
 		}
 		matrix.at(from).at(to) -= 1;
 		return;
-	}
+	}*/
 
 /*===== delete loop =====*/
 	matrix.at(from).at(from) = 0;
@@ -835,7 +843,7 @@ void basic_graph::make_vertex_identification(int first, int second)
 {
 	int vert = get_count_vertex();
 
-	if ((first == second) || (first > vert) || (second > vert) || (first < 1) || (second < 1))
+	if ((first > vert) || (second > vert) || (first < 1) || (second < 1))
 	{
 		cout << "Error: we haven't so vertex" << endl;
 		return;
@@ -843,6 +851,12 @@ void basic_graph::make_vertex_identification(int first, int second)
 
 	--first;
 	--second;
+
+	if (first == second)
+	{
+		cout << "Warning: Nothing happend" << endl;
+		return;
+	}
 
 	/*
 	Убрать вверху условие
@@ -1001,10 +1015,21 @@ void basic_graph::make_graph_product_with(std::vector<std::vector<int>>* externa
 void basic_graph::BFS(int node_num)
 {
 	int vert = get_count_vertex();
+
+	if ((node_num < 1) || (node_num > vert))
+	{
+		cout << "Error: The value is out of range" << endl;
+		return;
+	}
+
 	queue<int> turn;
 	vector<int> used(vert);
+	vector<int> path(vert);
+	int num_path = 1;
 
 	--node_num;
+
+	path[0] = node_num;
 	turn.push(node_num);
 	used.at(node_num) = 1;
 
@@ -1012,41 +1037,96 @@ void basic_graph::BFS(int node_num)
 	{
 		int ind = turn.front();
 		turn.pop();
-		cout << (ind+1) << ' ';
+		//cout << (ind+1) << ' ';
 		for (int i = 0; i < vert; ++i)
 		{
 			if ((matrix[ind][i] > 0) && (ind != i) && (used.at(i) == 0))
 			{
 				turn.push(i);
+				path[num_path] = i;
+				++num_path;
 				used.at(i) = 1;
 			}
 		}
 	}
+
+	for (int i = 0; i < vert; ++i)
+	{
+		matrix[i].assign(vert, 0);
+	}
+
+	for (int i = 0; i < num_path-1; ++i)
+	{
+		if (!is_oriented)
+		{
+			matrix[path[i + 1]][path[i]] += 1;
+		}
+		matrix[path[i]][path[i + 1]] += 1;
+
+		cout << path[i] + 1 << " -> ";
+	}
+	cout << path[num_path - 1] + 1 << endl;
 }
 
-void basic_graph::DFS(int node_num, int *used)
+void basic_graph::DFS(int node_num, int *used, queue<int> *path)
 {
 	if (used[node_num] != 0) return;
 	
+	path->push(node_num);
 	used[node_num] = 1;
-	cout << node_num+1 << ' ';
+	cout << node_num + 1 << " -> ";
 	//path[node_num] = node_from; 
 //	if (v == finish) - if path was found 
 	for (int i = 0; i < matrix.at(node_num).size(); ++i)  
 	{
 		if((matrix.at(node_num).at(i) > 0) && (node_num != i) && (used[i] == 0))
-			DFS(i, used);  
+			DFS(i, used, path);  
 	}
 }
 
 void basic_graph::DFS_search(int node_start)
 {
 	int vert = get_count_vertex();
+
+	if ((node_start < 1) || (node_start > vert))
+	{
+		cout << "Error: The value is out of range" << endl;
+		return;
+	}
+
 	int *used = new int[vert];
 
-	for (int i = 0; i < vert; ++i)	used[i] = 0;
+	queue<int> path;
+
+	for (int i = 0; i < vert; ++i)
+	{
+		used[i] = 0;
+	}
+
 	--node_start;
-	basic_graph::DFS(node_start, used);
+	basic_graph::DFS(node_start, used, &path);
+
+	for (int i = 0; i < vert; ++i)
+	{
+		matrix[i].assign(vert, 0);
+	}
+
+	int start_num = path.front();
+	path.pop();
+
+	while (!path.empty())
+	{
+		int cur_num = path.front();
+		path.pop();
+		
+		if (!is_oriented)
+		{
+			matrix[cur_num][start_num] += 1;
+		}
+		matrix[start_num][cur_num] += 1;
+		start_num = cur_num;
+	}
+
 	delete used;
 }
 
@@ -1088,4 +1168,51 @@ int basic_graph::floyd_alg()
 	}
 	//cout << max_val << endl;
 	return max_val;
+}
+
+bool basic_graph::DFS_for_topological(int node_num, int *color, stack<int> *stack_vert)
+{
+	if (color[node_num] == 1) return true;
+	if (color[node_num] == 2) return false;
+
+	color[node_num] = 1;
+	
+	for (int i = 0; i < matrix.at(node_num).size(); ++i)
+	{
+		if ((matrix.at(node_num).at(i) > 0) && (node_num != i))
+		{
+			if (DFS_for_topological(i, color, stack_vert) == true)
+				return true;
+		}
+	}
+
+	stack_vert->push(node_num);
+	color[node_num] = 2;
+	return false;
+}
+
+bool basic_graph::topological_sort()
+{
+	int vert = get_count_vertex();
+	bool Cycle;
+	stack<int> stack_vert;
+	int *color = new int[vert];
+
+	for (int i = 0; i < vert; ++i)
+	{
+	    Cycle = DFS_for_topological(i, color, &stack_vert);
+		if (Cycle)
+		{
+			delete[] color;
+			return false;
+		}
+	}
+	for (int i = 0; i < vert; ++i)
+	{
+		cout << i << ") " << stack_vert.top() << endl;
+		stack_vert.pop();
+	}
+
+	delete[] color;
+	return true;
 }

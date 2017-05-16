@@ -19,7 +19,7 @@ public:
 	void show_length_of_radius();
 	void show_length_of_diameter();
 
-	void Prims_algorithm();
+	void build_ostov_prims();
 
 private:
 	void adjacency_list(std::ifstream *work_file, std::vector<std::vector <int>> *matrix);

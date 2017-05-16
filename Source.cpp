@@ -136,8 +136,8 @@ int first(int type_of_graph)
 		cout << setw(40) << "19 = Delete edge" << endl;
 
 		cout << setw(40) << "20 = Make graph addition(aka dopolnenie)" << endl;
-		cout << setw(40) << "21 = Make graph contraction(aka podrazbienie)" << endl;
-		cout << setw(40) << "22 = Make graph subdivision(aka styagivanie)" << endl;
+		cout << setw(40) << "21 = Make graph contraction(aka styagivanie)" << endl;
+		cout << setw(40) << "22 = Make graph subdivision(aka podrazbienie)" << endl;
 
 		cout << setw(40) << "23 = Make vertex identification(aka otogdestvlenie)" << endl;
 
@@ -149,6 +149,10 @@ int first(int type_of_graph)
 		cout << setw(40) << "27 = Make connection(aka soedinenie)" << endl;
 		cout << setw(40) << "28 = Make graph product(aka proizvedenie)" << endl;
 		cout << setw(40) << "29 = Exit" << endl;
+		cout << setw(40) << "30 = Build ostov(Prim's algorithm)" << endl;
+		cout << setw(40) << "31 = BFS" << endl;
+		cout << setw(40) << "32 = DFS" << endl;
+		cout << setw(40) << "33 = Topological sort" << endl;
 
 		cin >> user_number;
 		system("cls");
@@ -251,6 +255,20 @@ int first(int type_of_graph)
 		case 27: new_graph.make_connection_with_graph(new_second.get_matrix());	break;
 		case 28: new_graph.make_graph_product_with(new_second.get_matrix());	break;
 		case 29: exit(0);	break;
+		case 30: new_graph.build_ostov_prims(); break;
+		case 31:
+		{
+			cout << "Enter the vertex number: ";
+			cin >> user_number;
+			new_graph.BFS(user_number);	break;
+		}
+		case 32:
+		{
+			cout << "Enter the vertex number: ";
+			cin >> user_number;
+			new_graph.DFS_search(user_number);	break;
+		}
+		case 33: new_graph.topological_sort(); break;
 		default:
 			break;
 		}
@@ -293,8 +311,8 @@ int second(int type_of_graph)
 		cout << setw(40) << "19 = Delete edge" << endl;
 
 		cout << setw(40) << "20 = Make graph addition(aka dopolnenie)" << endl;
-		cout << setw(40) << "21 = Make graph contraction(aka podrazbienie)" << endl;
-		cout << setw(40) << "22 = Make graph subdivision(aka styagivanie)" << endl;
+		cout << setw(40) << "21 = Make graph contraction(aka styagivanie)" << endl;
+		cout << setw(40) << "22 = Make graph subdivision(aka podrazbienie)" << endl;
 
 		cout << setw(40) << "23 = Make vertex identification(aka otogdestvlenie)" << endl;
 
@@ -306,6 +324,8 @@ int second(int type_of_graph)
 		cout << setw(40) << "27 = Make connection(aka soedinenie)" << endl;
 		cout << setw(40) << "28 = Make graph product(aka proizvedenie)" << endl;
 		cout << setw(40) << "29 = Exit" << endl;
+		cout << setw(40) << "31 = BFS" << endl;
+		cout << setw(40) << "32 = DFS" << endl;
 
 		cin >> user_number;
 		system("cls");
@@ -408,6 +428,18 @@ int second(int type_of_graph)
 		case 27: new_graph.make_connection_with_graph(new_second.get_matrix());	break;
 		case 28: new_graph.make_graph_product_with(new_second.get_matrix());	break;
 		case 29: exit(0);	break;
+		case 31:
+		{
+			cout << "Enter the vertex number: ";
+			cin >> user_number;
+			new_graph.BFS(user_number);	break;
+		}
+		case 32:
+		{
+			cout << "Enter the vertex number: ";
+			cin >> user_number;
+			new_graph.DFS_search(user_number);	break;
+		}
 		default:
 			break;
 		}

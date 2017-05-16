@@ -97,9 +97,10 @@ void normal_graph::show_length_of_diameter()
 	delete diameter;
 }
 
-void normal_graph::Prims_algorithm()
+void normal_graph::build_ostov_prims()
 {
 	int vert = basic_graph::get_count_vertex();
+
 	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
 
 	const int INF = 1000000000; // значение "бесконечность"
@@ -118,47 +119,87 @@ void normal_graph::Prims_algorithm()
 	}
 
 	int n = vert;
-
 								// алгоритм
 	vector<bool> used(n, false);
-	vector<int> dist(n, INF);
-	vector <int> path(n);
-	dist[0] = 0;
+	vector<pair<int, int>> dist(n, make_pair(INF, 0));
+	vector<pair<int, int>> path(n-1);
+
+	int num_vert = -1;
+
+	dist[0].first = 0;
 	int path_len = 0;
+
 	for (int i = 0; i < n; ++i)
 	{
 		int min_dist = INF;
-		int row;
+		int row = -1;
 		for (int num_vert = 0; num_vert < n; ++num_vert)
 		{
-			//Ищем минимальное ребро у неиспользованных вершин
-			if (!used[num_vert] && (dist[num_vert] < min_dist))
+			//We are looking for a minimal edge for unused vertices
+			if (!used[num_vert] && (dist[num_vert].first < min_dist))
 			{
-				min_dist = dist[num_vert];
+				min_dist = dist[num_vert].first;
 				row = num_vert;
 			}
 		}
 
-		//Подсчёт результатов
+		//Calculation of results
 		path_len += min_dist;
-		path[i] = row;
+	
+		if (num_vert != -1)
+		{
+			path[i - 1].first = dist[row].second;
+			path[i - 1].second = row;
+		}
+		++num_vert;
+
+		if (row == -1)
+		{
+			cout << "Error: There are some connected component" << endl;
+			return;
+		}
 
 		used[row] = true;
-		//Пересчитываем минимальные дистанции
+		//Recalculate the minimum distances to the new used vert
 		for (int col = 0; col < n; ++col)
 		{
-			dist[col] = min(dist[col], temp_matrix[row][col]);
+			if (!used[col] && temp_matrix[row][col] < dist[col].first)
+			{
+				dist[col].first = temp_matrix[row][col];
+				dist[col].second = row;
+			}
 		}	
 	}
 
-	cout << path_len << endl;
-	//basic_graph::show_external_matrix(&temp_matrix);
-
-	for (int i = 0; i < vert; ++i)
+	cout << "The length is " << path_len << endl;
+	
+	//Assign "temp_matrix" with value of "matrix"
+	//Assign "matrix" with zero
+	for (int row = 0; row < vert; ++row)
 	{
-		cout << path[i]+1 << " -> ";
+		for (int col = 0; col < vert; ++col)
+		{
+			temp_matrix[row][col] = matrix[row][col];
+		}
+		matrix[row].assign(vert, 0);
 	}
 
+	//Add edges to "matrix" from the "temp_matrix"
+	for (int i = 0; i < n-1; ++i)
+	{
+		int start_edge = path[i].first;
+		int end_edge = path[i].second;
+	
+		matrix[start_edge][end_edge] = temp_matrix[start_edge][end_edge];
+		matrix[end_edge][start_edge] = temp_matrix[end_edge][start_edge];
+
+		//show path on the screen
+		cout << start_edge << "->" << end_edge << '\t';
+		if (!((i+1) % 3))
+		{
+			cout << endl;
+		}
+	}
 }
 
 void normal_graph::adjacency_list(std::ifstream *work_file, std::vector<std::vector <int>> *matrix)
@@ -257,6 +298,9 @@ void normal_graph::make_graph_subdivision(int from, int to)
 	if (from == to)
 	{
 		matrix.at(from).at(to) -= 2;
+		add_vertex();
+		matrix.at(from).at(vert) += 1;
+		matrix.at(vert).at(from) += 1;
 		return;
 	}
 
