@@ -126,25 +126,23 @@ int basic_graph::get_count_edge()
 		{
 			if (temp_matrix.at(row).at(col) == 0)
 			{
-				switch (matrix.at(row).at(col))
+				if (matrix.at(row).at(col) != 0)
 				{
-				case 0:	temp_matrix.at(row).at(col) = 1;	break;
-				case 1: 
-				{
-					++edge;
-					if (is_oriented && matrix.at(col).at(row) == 1)
+					int proc_val = 0;
+					
+					while (matrix.at(row).at(col) != proc_val)
 					{
+						proc_val += 1;
 						++edge;
 					}
-					temp_matrix.at(row).at(col) = 1;
-					temp_matrix.at(col).at(row) = 1;
-				}break;
-				case 2: 
-				{
-					++edge;
-					temp_matrix.at(row).at(col) = 1;
-				}break;
+					if ((row == col) && !is_oriented)
+					{
+						proc_val /= 2;
+						edge -= proc_val;
+					}
 				}
+				temp_matrix.at(row).at(col) = 1;
+				temp_matrix.at(col).at(row) = 1;
 			}
 		}
 	}
@@ -341,33 +339,53 @@ void basic_graph::show_incidence_matrix()
 			if (temp_adj_matrix.at(row).at(col) == 0)
 			{
 				temp_adj_matrix.at(row).at(col) = 1;
-				switch (matrix.at(row).at(col))
-				{
-				case 1:
-				{
+				if (matrix.at(row).at(col) != 0)
+				{	
+					int proc_val = 0;
 					if (!is_oriented)
 					{
-						temp_inc_matrix.at(col).at(edge) = 1;
+						if (row != col)
+						{
+							while (matrix.at(row).at(col) != proc_val)
+							{
+								temp_inc_matrix.at(col).at(edge) = 1;
 
-						temp_inc_matrix.at(row).at(edge) = 1;
+								temp_inc_matrix.at(row).at(edge) = 1;
 
-						++edge;
-						temp_adj_matrix.at(col).at(row) = 1;
+								++edge;
+								proc_val += 1;
+							}
+						} else {
+							while (matrix.at(row).at(col) != proc_val)
+							{
+								proc_val += 2;
+								temp_inc_matrix.at(row).at(edge) = 2;
+								++edge;
+							}
+						}
 					} else {
-						temp_inc_matrix.at(col).at(edge) = -1;
+						if (row != col)
+						{
+							while (matrix.at(row).at(col) != proc_val)
+							{
+								temp_inc_matrix.at(col).at(edge) = -1;
 
-						temp_inc_matrix.at(row).at(edge) = 1;
-						
-						//temp_adj_matrix.at(col).at(row) = 1;
-						++edge;
+								temp_inc_matrix.at(row).at(edge) = 1;
+
+								++edge;
+								proc_val += 1;
+							}
+						} else
+						{
+							while (matrix.at(row).at(col) != proc_val)
+							{
+								proc_val += 1;
+								temp_inc_matrix.at(row).at(edge) = 1;
+								++edge;
+							}
+						}
 					}
-				}break;
-				case 2:
-				{
-					temp_inc_matrix.at(row).at(edge) = 2;
-					++edge;
-				}break;
-				default:;
+					temp_adj_matrix.at(col).at(row) = 1;
 				}
 			}
 		}
