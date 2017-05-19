@@ -11,10 +11,11 @@
 #include <queue>
 #include <stack>
 
-#define UNKNOWN_MATRIX 0
-#define ADJACENCY_MATR 1
-#define INCIDENCE_MATR 2
-#define ADJACENCY_LIST 3
+#define ERROR (-1)
+#define UNKNOWN_MATRIX (0)
+#define ADJACENCY_MATR (1)
+#define INCIDENCE_MATR (2)
+#define ADJACENCY_LIST (3)
 
 class basic_graph
 {
@@ -33,7 +34,7 @@ public:
 	void show_length_of_diameter();
 	void show_center_number();
 	void show_peripheral_number();
-	void add_vertex();
+	void add_vertex(int number_of_vertex);
 	void delete_vertex(int number_of_vertex);
 	void add_edge(int from, int to);
 	void delete_edge(int from, int to);
@@ -54,11 +55,10 @@ public:
 	bool topological_sort();
 	bool DFS_for_topological(int node_num, int *color, std::stack<int> *stack_vert);
 
+	int get_unused_user_num();
+
 protected:
 	
-	int is_oriented;
-
-
 	int get_count_vertex();
 	int get_count_edge();
 	int get_degree_of(int number_of_vertex);
@@ -80,6 +80,19 @@ protected:
 	//Init for childs
 	void adjacency_matrix(std::ifstream *work_file, std::vector<std::vector <int>> *matrix);
 	void incidence_matrix(std::ifstream *work_file, std::vector<std::vector <int>> *matrix);
+
+	struct
+	{
+		int num;
+		int cur_num;
+	}typedef num_vert;
+
+	std::vector<num_vert> user_vert;
+	int is_oriented;
+	int transform_num(int num);
+	int untransform_num(int cur_num);
+	void add_user_num(int num, int matrix_num);
+	int del_user_num(int num);
 
 	std::vector<std::vector <int>> matrix;
 };

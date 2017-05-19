@@ -22,6 +22,18 @@ int second(int type_of_graph);
 */
 
 
+//int main()
+//{
+//	normal_graph new_graph(ADJACENCY_LIST, "first_matrix.txt");
+//	normal_graph second_graph(ADJACENCY_MATR, "second_matrix.txt");
+//
+//	new_graph.show_adjacency_matrix();
+//	cout << endl;
+//	new_graph.make_graph_contraction(1, 2);
+//	new_graph.show_adjacency_matrix();
+//	system("pause");
+//}
+
 int main()
 {
 	//normal_graph new_graph(ADJACENCY_MATR, "first_matrix.txt");
@@ -191,7 +203,12 @@ int first(int type_of_graph)
 		case 13: new_graph.show_length_of_radius();	break;
 		case 14: new_graph.show_center_number();	break;
 		case 15: new_graph.show_peripheral_number();	break;
-		case 16: new_graph.add_vertex();	break;
+		case 16:
+		{
+			cout << "Enter the vertex number: ";
+			cin >> user_number;
+			new_graph.add_vertex(user_number);	break;
+		}
 		case 17:
 		{
 			cout << "Enter the vertex number: ";
@@ -364,7 +381,12 @@ int second(int type_of_graph)
 		case 13: new_graph.show_length_of_radius();	break;
 		case 14: new_graph.show_center_number();	break;
 		case 15: new_graph.show_peripheral_number();	break;
-		case 16: new_graph.add_vertex();	break;
+		case 16:
+		{
+			cout << "Enter the vertex number: ";
+			cin >> user_number;
+			new_graph.add_vertex(user_number);	break;
+		}
 		case 17:
 		{
 			cout << "Enter the vertex number: ";

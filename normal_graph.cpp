@@ -31,6 +31,13 @@ normal_graph::normal_graph(int type_of_graph, char * file_name)
 	}break;
 	}
 
+	user_vert.resize(matrix.size());
+	for (int i = 0; i < matrix.size(); ++i)
+	{
+		user_vert[i].num = i + 1;
+		user_vert[i].cur_num = i;
+	}
+
 	//========== Write to vector ==========
 
 	work_file.close();
@@ -46,8 +53,12 @@ void normal_graph::delete_edge(int from, int to)
 		return;
 	}
 
-	--from;
-	--to;
+	from = transform_num(from);
+	to = transform_num(to);
+	if ((from == ERROR) || (to == ERROR))
+	{
+		return;
+	}
 
 	if (basic_graph::matrix.at(from).at(to) != 0 && basic_graph::matrix.at(to).at(from) != 0)
 	{
@@ -68,8 +79,13 @@ void normal_graph::add_edge(int from, int to)
 		return;
 	}
 
-	--from;
-	--to;
+	from = transform_num(from);
+	to = transform_num(to);
+
+	if ((from == ERROR) || (to == ERROR))
+	{
+		return;
+	}
 
 	basic_graph::matrix.at(from).at(to) += 1;
 	basic_graph::matrix.at(to).at(from) += 1;
@@ -261,18 +277,23 @@ void normal_graph::show_degree_of(int number_of_vertex)
 		cout << "Error: unable find vertex" << endl;
 		return;
 	}
-	--number_of_vertex;
+
+	number_of_vertex = transform_num(number_of_vertex);
+	if (number_of_vertex == ERROR)
+	{
+		return;
+	}
 	cout << "Degree = " << basic_graph::get_degree_of(number_of_vertex) << endl;
 }
 
 void normal_graph::show_degree_sequence()
 {
-	int size = matrix.size() + 1;
+	int size = user_vert.size();
 
-	for (int i = 1; i < size; ++i)
+	for (int i = 0; i < size; ++i)
 	{
-		cout << i << ") ";
-		show_degree_of(i);
+		cout << user_vert[i].num << ") ";
+		show_degree_of(user_vert[i].num);
 	}
 }
 
@@ -286,8 +307,12 @@ void normal_graph::make_graph_subdivision(int from, int to)
 		return;
 	}
 
-	--from;
-	--to;
+	from = transform_num(from);
+	to = transform_num(to);
+	if ((from == ERROR) || (to == ERROR))
+	{
+		return;
+	}
 
 	if (basic_graph::matrix.at(from).at(to) == 0 || basic_graph::matrix.at(to).at(from) == 0)
 	{
@@ -295,31 +320,35 @@ void normal_graph::make_graph_subdivision(int from, int to)
 		return;
 	}
 
+	//if loop
 	if (from == to)
 	{
 		matrix.at(from).at(to) -= 2;
-		add_vertex();
-		matrix.at(from).at(vert) += 1;
-		matrix.at(vert).at(from) += 1;
+
+		int num = get_unused_user_num();
+		add_vertex(num);
+		num = transform_num(num);
+
+		matrix.at(from).at(num) += 1;
+		matrix.at(num).at(from) += 1;
 		return;
 	}
 
-	basic_graph::add_vertex();
+	int num = get_unused_user_num();
+	add_vertex(num);
+	num = transform_num(num);
 
-	
+	//delete edge
 	basic_graph::matrix.at(from).at(to) -= 1;
 	basic_graph::matrix.at(to).at(from) -= 1;
 
-	vert = basic_graph::get_count_vertex() - 1;
+	//connect new edge with vertex from
+	basic_graph::matrix.at(from).at(num) += 1;
+	basic_graph::matrix.at(num).at(from) += 1;
 
-	if (from != to)
-	{
-		basic_graph::matrix.at(from).at(vert) += 1;
-		basic_graph::matrix.at(vert).at(from) += 1;
-	}
-
-	basic_graph::matrix.at(to).at(vert) += 1;
-	basic_graph::matrix.at(vert).at(to) += 1;
+	//connect new edge with vertex to
+	basic_graph::matrix.at(to).at(num) += 1;
+	basic_graph::matrix.at(num).at(to) += 1;
 }
 
 vector<vector<int>>* normal_graph::get_matrix()

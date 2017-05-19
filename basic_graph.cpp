@@ -109,6 +109,83 @@ void basic_graph::incidence_matrix(std::ifstream *work_file, std::vector<std::ve
 	temp_matrix.clear();
 }
 
+int basic_graph::transform_num(int num)
+{
+	int size = user_vert.size();
+	for (int i = 0; i < size; i++)
+	{
+		if (user_vert[i].num == num)
+		{
+			return user_vert[i].cur_num;
+		}
+	}
+	cout << "Error unable to found vertex with num" << num << endl;
+	return ERROR;
+}
+
+int basic_graph::untransform_num(int cur_num)
+{
+	int size = user_vert.size();
+	for (int i = 0; i < size; i++)
+	{
+		if (user_vert[i].cur_num == cur_num)
+		{
+			return user_vert[i].num;
+		}
+	}
+	cout << "Error unable to found vertex with num" << cur_num << endl;
+	return ERROR;
+}
+
+void basic_graph::add_user_num(int num, int matrix_num)
+{
+	num_vert temp_num;
+	temp_num.num = num;
+	temp_num.cur_num = matrix_num;
+	user_vert.push_back(temp_num);
+}
+
+int basic_graph::del_user_num(int num)
+{
+	int size = user_vert.size();
+	for (int i = 0; i < size; i++)
+	{
+		if (user_vert[i].num == num)
+		{
+			int ret_num = user_vert[i].cur_num;
+			user_vert.erase(user_vert.begin() + i);
+			for (int k = i; k < size-1; k++)
+			{
+				user_vert[k].cur_num -= 1;
+			}
+			return ret_num;
+		}
+	}
+	cout << "Error unable to found vertex with num" << num << endl;
+	return ERROR;
+}
+
+int basic_graph::get_unused_user_num()
+{
+	int size = user_vert.size();
+
+	sort(user_vert.begin(), user_vert.end(), [](const num_vert &a, const num_vert &b)
+	{
+		return a.num < b.num;
+	});
+
+	int prev = 1;
+	for (int i = 0; i < size; ++i, ++prev)
+	{
+		if ((user_vert[i].num-prev) > 0)
+		{
+			return prev;
+		}
+	}
+
+	return prev;
+}
+
 int basic_graph::get_count_vertex()
 {
 	return matrix.size();
@@ -301,7 +378,7 @@ void basic_graph::show_adjacency_matrix()
 	cout << "   ";
 	for (int i = 0; i < len; ++i)
 	{
-		cout << i + 1 << ' ';
+		cout << untransform_num(i) << ' ';
 	}
 	cout << endl;
 	cout << "===";
@@ -312,8 +389,9 @@ void basic_graph::show_adjacency_matrix()
 	cout << endl;
 	for (int row = 0; row < len; ++row)
 	{
-		if (row + 1 < 10)	cout << ' ';
-		cout << row + 1 << '|';
+		int utrans = untransform_num(row);
+		if (utrans < 10)	cout << ' ';
+		cout << utrans << '|';
 		for (int col = 0; col < len; ++col)
 		{
 			cout << ' ' << matrix.at(row).at(col);
@@ -464,6 +542,13 @@ void basic_graph::show_distance(int from, int to)
 
 	if (from == to) { cout << "Error. 'From' and 'to' need to be different" << endl; return; }
 
+	from = transform_num(from);
+	to = transform_num(to);
+	if ((from == ERROR) || (to == ERROR))
+	{
+		return;
+	}
+
 	int distance = get_distance(from, to);
 
 	if (distance == 0) { cout << "Error, the value in a different connected component" << endl; return; }
@@ -473,7 +558,12 @@ void basic_graph::show_distance(int from, int to)
 
 void basic_graph::show_eccentricity_of(int number_of_vertex)
 {
-	cout << "The eccentricity is" << get_eccentricity_of(number_of_vertex - 1) << endl;
+	number_of_vertex = transform_num(number_of_vertex);
+	if (number_of_vertex == ERROR)
+	{
+		return;
+	}
+	cout << "The eccentricity is" << get_eccentricity_of(number_of_vertex) << endl;
 }
 
 void basic_graph::show_length_of_radius()
@@ -514,7 +604,7 @@ void basic_graph::show_center_number()
 		for (int i = 0; i < radius->at(size).size(); ++i)
 		{
 			if (get_eccentricity_of(radius->at(size).at(i)) == len_radius)
-				cout << "center is " << radius->at(size).at(i) + 1 << endl;
+				cout << "center is " << transform_num(radius->at(size).at(i)) << endl;
 		}
 	}
 	delete radius;
@@ -531,15 +621,16 @@ void basic_graph::show_peripheral_number()
 		for (int i = 0; i < diameter->at(size).size(); ++i)
 		{
 			if (get_eccentricity_of(diameter->at(size).at(i)) == len_diam)
-				cout << "peripheral is " << diameter->at(size).at(i) + 1 << endl;
+				cout << "peripheral is " << transform_num(diameter->at(size).at(i)) << endl;
 		}
 	}
 	delete diameter;
 }
 
-void basic_graph::add_vertex()
+void basic_graph::add_vertex(int number_of_vertex)
 {
 	int vert = get_count_vertex();
+	add_user_num(number_of_vertex, vert);
 	++vert;
 
 	for (int i = 0; i < vert-1; ++i)
@@ -559,7 +650,11 @@ void basic_graph::delete_vertex(int number_of_vertex)
 		return;
 	}
 
-	--number_of_vertex;
+	number_of_vertex = del_user_num(number_of_vertex);
+	if (number_of_vertex == ERROR)
+	{
+		return;
+	}
 
 	for (int i = 0; i < vert; ++i)
 	{
@@ -578,8 +673,13 @@ void basic_graph::add_edge(int from, int to)
 		return;
 	}
 
-	--from;
-	--to;
+	from = transform_num(from);
+	to = transform_num(to);
+
+	if ((from == ERROR) || (to == ERROR))
+	{
+		return;
+	}
 
 	matrix.at(from).at(to) += 1;
 }
@@ -793,8 +893,12 @@ void basic_graph::make_graph_contraction(int from, int to)
 		return;
 	}
 
-	--from;
-	--to;
+	from = transform_num(from);
+	to = transform_num(to);
+	if ((from == ERROR) || (to == ERROR))
+	{
+		return;
+	}
 
 /*===== if error ===== */
 	if ((matrix.at(from).at(to) == 0) || (matrix.at(to).at(from) == 0))
@@ -850,7 +954,9 @@ void basic_graph::make_graph_contraction(int from, int to)
 
 	if (to > from)	--to;
 
-	delete_vertex(from+1);
+	//translate to user num
+	from = untransform_num(from);
+	delete_vertex(from);
 	
 	for (auto &element : temp_vertex_col)	basic_graph::matrix.at(to).at(element) += 1;
 	
@@ -867,8 +973,12 @@ void basic_graph::make_vertex_identification(int first, int second)
 		return;
 	}
 
-	--first;
-	--second;
+	first = transform_num(first);
+	second = transform_num(second);
+	if ((first == ERROR) || (second == ERROR))
+	{
+		return;
+	}
 
 	if (first == second)
 	{
@@ -898,7 +1008,8 @@ void basic_graph::make_vertex_identification(int first, int second)
 		matrix.at(i).at(first) += matrix.at(i).at(second);
 	}
 
-	delete_vertex(second+1);
+	second = untransform_num(second);
+	delete_vertex(second);
 }
 
 void basic_graph::make_vertex_dublicate(int number_of_vertex)
@@ -910,14 +1021,17 @@ void basic_graph::make_vertex_dublicate(int number_of_vertex)
 		return;
 	}
 
-	--number_of_vertex;
-	add_vertex();
+	number_of_vertex = transform_num(number_of_vertex);
+	
+	int num = get_unused_user_num();
+	add_vertex(num);
+	num = transform_num(num);
 
 	for (int i = 0; i < vert; ++i)
 	{
 		if (number_of_vertex != i)
 		{
-			matrix.at(vert).at(i) = matrix.at(number_of_vertex).at(i);
+			matrix.at(num).at(i) = matrix.at(number_of_vertex).at(i);
 		}
 	}
 
@@ -925,7 +1039,7 @@ void basic_graph::make_vertex_dublicate(int number_of_vertex)
 	{
 		if (number_of_vertex != i)
 		{
-			matrix.at(i).at(vert) += matrix.at(i).at(number_of_vertex);
+			matrix.at(i).at(num) += matrix.at(i).at(number_of_vertex);
 		}
 	}
 }
@@ -941,7 +1055,7 @@ void basic_graph::make_proliferation_with(int number_of_vertex)
 	}
 
 	make_vertex_dublicate(number_of_vertex);
-	--number_of_vertex;
+	number_of_vertex = transform_num(number_of_vertex);
 
 	basic_graph::matrix.at(number_of_vertex).at(vert) += 1;
 	basic_graph::matrix.at(vert).at(number_of_vertex) += 1;
@@ -951,18 +1065,22 @@ void basic_graph::make_union_with_graph(vector<vector<int>>* external_matrix)
 {
 	int start_count_vert = get_count_vertex();
 	int vert = external_matrix->size();
-		
+	vector<int> temp_matrix(vert);
+
 	for (int i = 0; i < vert; ++i)
 	{
-		add_vertex();
+		int num = get_unused_user_num();
+		add_vertex(num);
+		num = transform_num(num);
+		temp_matrix[i] = num;
 	}
 
-	vert += start_count_vert;
-
-	for (int row = start_count_vert, local_row = 0; row < vert; ++row, ++local_row)
+	for (int local_row = 0; local_row < vert; ++local_row)
 	{
-		for (int col = start_count_vert, local_col = 0; col < vert; ++col, ++local_col)
+		for (int local_col = 0; local_col < vert; ++local_col)
 		{
+			int row = temp_matrix[local_row];
+			int col = temp_matrix[local_col];
 			matrix.at(row).at(col) = external_matrix->at(local_row).at(local_col);
 		}
 	}

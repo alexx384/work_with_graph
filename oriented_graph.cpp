@@ -61,20 +61,23 @@ void oriented_graph::show_degree_of(int number_of_vertex)
 		return;
 	}
 
-	--number_of_vertex;
-
+	number_of_vertex = transform_num(number_of_vertex);
+	if (number_of_vertex == ERROR)
+	{
+		return;
+	}
 	cout << "indegree = " << get_indegree_of(number_of_vertex) << ", ";
 	cout << "Outdegree = " << get_outdegree_of(number_of_vertex) << endl;
 }
 
 void oriented_graph::show_degree_sequence()
 {
-	int size = matrix.size() + 1;
+	int size = user_vert.size();
 
-	for (int i = 1; i < size; ++i)
+	for (int i = 0; i < size; ++i)
 	{
-		cout << i << ") ";
-		show_degree_of(i);
+		cout << user_vert[i].num << ") ";
+		show_degree_of(user_vert[i].num);
 	}
 }
 
@@ -115,8 +118,12 @@ void oriented_graph::make_graph_subdivision(int from, int to)
 		return;
 	}
 
-	--from;
-	--to;
+	from = transform_num(from);
+	to = transform_num(to);
+	if ((from == ERROR) || (to == ERROR))
+	{
+		return;
+	}
 
 	if (basic_graph::matrix.at(from).at(to) == 0)
 	{
@@ -127,17 +134,21 @@ void oriented_graph::make_graph_subdivision(int from, int to)
 	if (from == to)
 	{
 		matrix.at(from).at(to) -= 1;
+		int num = get_unused_user_num();
+		add_vertex(num);
+		num = transform_num(num);
+		matrix.at(from).at(num) += 1;
 		return;
 	}
 
-	basic_graph::add_vertex();
+	int num = get_unused_user_num();
+	add_vertex(num);
+	num = transform_num(num);
 
 	basic_graph::matrix.at(from).at(to) -= 1;
 
-	vert = basic_graph::get_count_vertex() - 1;
-
-	basic_graph::matrix.at(from).at(vert) += 1;
-	basic_graph::matrix.at(vert).at(to) += 1;
+	basic_graph::matrix.at(from).at(num) += 1;
+	basic_graph::matrix.at(num).at(to) += 1;
 }
 
 vector<vector<int>>* oriented_graph::get_matrix()
@@ -172,6 +183,13 @@ oriented_graph::oriented_graph(int type_of_graph, char * file_name)
 	{
 		oriented_graph::adjacency_list(&work_file, &matrix);
 	}break;
+	}
+
+	user_vert.resize(matrix.size());
+	for (int i = 0; i < matrix.size(); ++i)
+	{
+		user_vert[i].num = i + 1;
+		user_vert[i].cur_num = i;
 	}
 
 	//========== Write to vector ==========
