@@ -110,6 +110,7 @@ void basic_graph::incidence_matrix(std::ifstream *work_file, std::vector<std::ve
 	temp_matrix.clear();
 }
 
+/*Transform num from user space to program space*/
 int basic_graph::transform_num(int num)
 {
 	int size = user_vert.size();
@@ -124,6 +125,7 @@ int basic_graph::transform_num(int num)
 	return ERROR;
 }
 
+/*Transform num from program space to user space*/
 int basic_graph::untransform_num(int cur_num)
 {
 	int size = user_vert.size();
@@ -648,12 +650,6 @@ void basic_graph::delete_vertex(int number_of_vertex)
 {
 	int vert = get_count_vertex();
 
-	if (number_of_vertex < 1 || number_of_vertex > vert)
-	{
-		cout << "Error: unable find vertex" << endl;
-		return;
-	}
-
 	number_of_vertex = del_user_num(number_of_vertex);
 	if (number_of_vertex == ERROR)
 	{
@@ -884,87 +880,85 @@ void basic_graph::make_graph_addition()
 	}
 }
 
-void basic_graph::make_graph_contraction(int from, int to)
+void basic_graph::make_graph_contraction(std::vector<int> *user_arr)
 {
 	int vert = get_count_vertex();
 
-	vector<int>	temp_vertex_col;
-	vector<int>	temp_vertex_raw;
+	vector<int>	temp_vertex_col(vert);
+	vector<int>	temp_vertex_raw(vert);
 
-	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	for (int i = 0; i < user_arr->size(); ++i)
 	{
-		cout << "The value is out of range" << endl;
-		return;
+		int temp = user_arr->at(i);
+		temp = transform_num(temp);
+		if (temp == ERROR)
+		{
+			return;
+		}
+		user_arr->at(i) = temp;
+		/*===== delete loop =====*/
+		matrix.at(temp).at(temp) = 0;
 	}
 
-	from = transform_num(from);
+ /*wirite edges of first edge and others*/
+	int user_size = user_arr->size();
+	for (int i = 0; i < user_size; ++i)
+	{
+		int first = user_arr->at(i);
+		for (int col = 0; col < vert; ++col)
+		{
+			if(temp_vertex_raw[col] == 0)
+				temp_vertex_raw[col] = matrix[first][col];
+		}
+	}
+
+
+	for (int i = 0; i < user_size; ++i)
+	{
+		int first = user_arr->at(i);
+		for (int row = 0; row < vert; ++row)
+		{
+			if (temp_vertex_col[row] == 0)
+				temp_vertex_col[row] = matrix[row][first];
+		}
+	}
+
+	int frst_temp = user_arr->at(0);
+	for (int i = 0; i < vert; ++i)
+	{
+		if (frst_temp != i)
+		{
+			matrix[frst_temp][i] = temp_vertex_raw[i];
+		}
+	}
+	for (int i = 0; i < vert; ++i)
+	{
+		if (frst_temp != i)
+		{
+			matrix[i][frst_temp] = temp_vertex_col[i];
+		}
+	}
+
+
+	/*from = transform_num(from);
 	to = transform_num(to);
 	if ((from == ERROR) || (to == ERROR))
 	{
 		return;
-	}
-
-/*===== if error ===== */
-	if ((matrix.at(from).at(to) == 0) || (matrix.at(to).at(from) == 0))
-	{
-		cout << "Error: we haven't so vertex" << endl;
-		return;
-	}
-
-	/*if (from == to)
-	{
-		if (!is_oriented)
-		{
-			matrix.at(from).at(to) -= 1;
-		}
-		matrix.at(from).at(to) -= 1;
-		return;
 	}*/
 
-/*===== delete loop =====*/
-	matrix.at(from).at(from) = 0;
-	matrix.at(to).at(to) = 0;
-
-//===== delete multiple edges =====
-	for (int len = 0; len < vert; ++len)
-	{
-		if ((matrix.at(from).at(len) == matrix.at(to).at(len)) 
-			&& (matrix.at(from).at(len) > 0) && (matrix.at(to).at(len) > 0))
-		{	
-			matrix.at(len).at(to) = 0;
-			matrix.at(to).at(len) = 0;
-		}
-	}
-
-/*===== write edges of first vertex =====*/
-	for (int i = 0; i < vert; ++i)
-	{
-		if ((matrix.at(from).at(i) == 1) && (i != to))
-		{
-			if(i < from)	temp_vertex_col.push_back(i);
-			else			temp_vertex_col.push_back(i-1);
-		}
-	}
-
-/*===== write edges of second vertex =====*/
-	for (int i = 0; i < vert; ++i)
-	{
-		if ((matrix.at(i).at(from) == 1) && (i != to))
-		{
-			if (i < from)	temp_vertex_raw.push_back(i);
-			else			temp_vertex_raw.push_back(i - 1);
-		}
-	}
-
-	if (to > from)	--to;
-
 	//translate to user num
-	from = untransform_num(from);
-	delete_vertex(from);
-	
-	for (auto &element : temp_vertex_col)	basic_graph::matrix.at(to).at(element) += 1;
-	
-	for (auto &element : temp_vertex_raw)	basic_graph::matrix.at(element).at(to) += 1;
+	for (int i = 1; i < user_size; ++i)
+	{
+		int temp = user_arr->at(i);
+		temp = untransform_num(temp);
+		user_arr->at(i) = temp;
+	}
+	for (int i = 1; i < user_size; ++i)
+	{
+		int temp = user_arr->at(i);
+		delete_vertex(temp);
+	}
 }
 
 void basic_graph::make_vertex_identification(int first, int second)

@@ -39,7 +39,7 @@ public:
 	void add_edge(int from, int to);
 	void delete_edge(int from, int to);
 	void make_graph_addition();
-	void make_graph_contraction(int from, int to);
+	void make_graph_contraction(std::vector<int> *user_arr);
 	void make_vertex_identification(int first, int second);
 	void make_vertex_dublicate(int number_of_vertex);
 	void make_proliferation_with(int number_of_vertex);

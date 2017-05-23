@@ -234,11 +234,24 @@ int first(int type_of_graph)
 		case 20: new_graph.make_graph_addition();	break;
 		case 21:
 		{
-			cout << "From ";
-			cin >> from;
-			cout << endl << "To ";
-			cin >> to;
-			new_graph.make_graph_contraction(from, to);	break;
+			cout << "Enter the vertices. If you want to quit, write -1 and hit Enter" << endl;
+			vector<int> user_arr;
+			int temp, cnt_param = 0;
+			do
+			{
+				if (cnt_param != 0)
+				{
+					user_arr.push_back(temp);
+				}
+				cin >> temp;
+				++cnt_param;
+			} while (temp > -1);
+			if (cnt_param == 1)
+			{
+				cout << "Error: Invalid data" << endl;
+			}
+
+			new_graph.make_graph_contraction(&user_arr);	break;
 		}
 		case 22:
 		{
@@ -412,11 +425,24 @@ int second(int type_of_graph)
 		case 20: new_graph.make_graph_addition();	break;
 		case 21:
 		{
-			cout << "From ";
-			cin >> from;
-			cout << endl << "To ";
-			cin >> to;
-			new_graph.make_graph_contraction(from, to);	break;
+			cout << "Enter the vertices. If you want to quit, write -1 and hit Enter" << endl;
+			vector<int> user_arr;
+			int temp, cnt_param = 0;
+			do
+			{
+				if (cnt_param != 0)
+				{
+					user_arr.push_back(temp);
+				}
+				cin >> temp;
+				++cnt_param;
+			} while (temp > -1);
+			if (cnt_param == 1)
+			{
+				cout << "Error: Invalid data" << endl;
+			}
+
+			new_graph.make_graph_contraction(&user_arr);	break;
 		}
 		case 22:
 		{
