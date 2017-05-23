@@ -65,11 +65,12 @@ void basic_graph::incidence_matrix(std::ifstream *work_file, std::vector<std::ve
 
 	for (int row = 0; row < count_row; ++row)
 	{
-		char buff[3] = { 0 };
+		//char buff[3] = { 0 };
 		for (int col = 0; col < count_col; ++col)
 		{
-			(*work_file) >> buff;
-			temp_matrix.at(row).at(col) = atoi(buff);
+			//(*work_file) >> buff;
+			 //= atoi(buff);
+			 (*work_file) >> temp_matrix.at(row).at(col);
 		}
 	}
 
@@ -219,7 +220,10 @@ int basic_graph::get_count_edge()
 					}
 				}
 				temp_matrix.at(row).at(col) = 1;
-				temp_matrix.at(col).at(row) = 1;
+				if (!is_oriented)
+				{
+					temp_matrix.at(col).at(row) = 1;
+				}
 			}
 		}
 	}
@@ -1000,12 +1004,18 @@ void basic_graph::make_vertex_identification(int first, int second)
 
 	for (int i = 0; i < vert; ++i)
 	{
-		matrix.at(first).at(i) += matrix.at(second).at(i);
+		if (matrix.at(first).at(i) == 0)
+		{
+			matrix.at(first).at(i) += matrix.at(second).at(i);
+		}
 	}
 
 	for (int i = 0; i < vert; ++i)
 	{
-		matrix.at(i).at(first) += matrix.at(i).at(second);
+		if (matrix.at(i).at(first) == 0)
+		{
+			matrix.at(i).at(first) += matrix.at(i).at(second);
+		}
 	}
 
 	second = untransform_num(second);
