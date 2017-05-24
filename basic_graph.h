@@ -12,6 +12,7 @@
 #include <stack>
 
 #define ERROR (-1)
+#define NO_ERROR (0)
 #define UNKNOWN_MATRIX (0)
 #define ADJACENCY_MATR (1)
 #define INCIDENCE_MATR (2)
@@ -74,26 +75,29 @@ protected:
 	//Never used
 	int get_count_edges_in(std::vector<std::vector<int>> *external_matrix);
 
+	/*Distance*/
 	std::vector<int> * get_distance_to_all_vertex(int number_of_vertex);
 	std::vector<std::vector<int>> * get_count_of_connected_component();
 
-	//Init for childs
+  /*Init apropriate matrix for normal and oriented graph*/	
 	void adjacency_matrix(std::ifstream *work_file, std::vector<std::vector <int>> *matrix);
 	void incidence_matrix(std::ifstream *work_file, std::vector<std::vector <int>> *matrix);
 
+	/*That section is response for labels of vertices*/
 	struct
 	{
-		int num;
-		int cur_num;
+		int num;			//Number in user space
+		int cur_num;		//Number in program space
 	}typedef num_vert;
 
-	std::vector<num_vert> user_vert;
 	int is_oriented;
 	int transform_num(int num);
 	int untransform_num(int cur_num);
-	void add_user_num(int num, int matrix_num);
+	int add_user_num(int num, int matrix_num);
 	int del_user_num(int num);
 
+	/*initialized in constructor of appropriate matrix*/
+	std::vector<num_vert> user_vert;
 	std::vector<std::vector <int>> matrix;
 };
 

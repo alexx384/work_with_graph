@@ -73,12 +73,6 @@ void normal_graph::add_edge(int from, int to)
 {
 	int vert = get_count_vertex();
 
-	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
-	{
-		cout << "Error, the value is out of range" << endl;
-		return;
-	}
-
 	from = transform_num(from);
 	to = transform_num(to);
 
@@ -271,12 +265,6 @@ void normal_graph::adjacency_list(std::ifstream *work_file, std::vector<std::vec
 void normal_graph::show_degree_of(int number_of_vertex)
 {
 	int vert = get_count_vertex();
-
-	if (number_of_vertex < 1 || number_of_vertex > vert)
-	{
-		cout << "Error: unable find vertex" << endl;
-		return;
-	}
 
 	number_of_vertex = transform_num(number_of_vertex);
 	if (number_of_vertex == ERROR)

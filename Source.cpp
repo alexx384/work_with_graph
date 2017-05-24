@@ -488,6 +488,7 @@ int second(int type_of_graph)
 			cin >> user_number;
 			new_graph.DFS_search(user_number);	break;
 		}
+		case 33: new_graph.topological_sort(); break;
 		default:
 			break;
 		}

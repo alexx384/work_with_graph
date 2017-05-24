@@ -140,12 +140,24 @@ int basic_graph::untransform_num(int cur_num)
 	return ERROR;
 }
 
-void basic_graph::add_user_num(int num, int matrix_num)
+int basic_graph::add_user_num(int num, int matrix_num)
 {
+	int size = user_vert.size();
+	for (int i = 0; i < size; i++)
+	{
+		if (user_vert[i].num == num)
+		{
+			cout << "Error: The vertice is already exist" << endl;
+			return ERROR;
+		}
+	}
+	
 	num_vert temp_num;
 	temp_num.num = num;
 	temp_num.cur_num = matrix_num;
 	user_vert.push_back(temp_num);
+
+	return NO_ERROR;
 }
 
 int basic_graph::del_user_num(int num)
@@ -249,9 +261,9 @@ int basic_graph::get_degree_of(int number_of_vertex)
 
 int basic_graph::get_distance(int from, int to)
 {
-	--from;
+	//--from;
 	const vector<int> *distance = get_distance_to_all_vertex(from);
-	--to;
+	//--to;
 	int result = distance->at(to);
 
 	delete distance;
@@ -478,6 +490,7 @@ void basic_graph::show_incidence_matrix()
 	cout << right;
 	for (int row = 0; row < vert; ++row)
 	{
+		cout << setw(3) << user_vert[row].num << '|';
 		for (int col = 0; col < edge; ++col)
 		{
 			cout << setw(3) << temp_inc_matrix.at(row).at(col);
@@ -495,19 +508,19 @@ void basic_graph::show_adjacency_list()
 
 	for (int row = 0; row < vert; ++row)
 	{
-		cout << " {" << row + 1;
+		cout << " {" << user_vert[row].num;
 		for (int col = 0; col < vert; ++col)
 		{
 			if (!is_oriented && (row == col))
 			{
 				for (int i = 0; i < matrix.at(row).at(col); i+=2)
 				{
-					cout << ' ' << col + 1;
+					cout << ' ' << untransform_num(col);
 				}
 			} else {
 				for (int i = 0; i < matrix.at(row).at(col); ++i)
 				{
-					cout << ' ' << col + 1;
+					cout << ' ' << untransform_num(col);
 				}
 			}
 		}
@@ -540,11 +553,6 @@ void basic_graph::show_isolated_vertex()
 void basic_graph::show_distance(int from, int to)
 {
 	int vert = get_count_vertex();
-	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
-	{ 
-		cout << "Error, the value is out of range" << endl; 
-		return; 
-	}
 
 	if (from == to) { cout << "Error. 'From' and 'to' need to be different" << endl; return; }
 
@@ -636,7 +644,10 @@ void basic_graph::show_peripheral_number()
 void basic_graph::add_vertex(int number_of_vertex)
 {
 	int vert = get_count_vertex();
-	add_user_num(number_of_vertex, vert);
+	if (add_user_num(number_of_vertex, vert) == ERROR)
+	{
+		return;
+	}
 	++vert;
 
 	for (int i = 0; i < vert-1; ++i)
@@ -667,12 +678,6 @@ void basic_graph::add_edge(int from, int to)
 {
 	int vert = get_count_vertex();
 
-	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
-	{
-		cout << "Error, the value is out of range" << endl;
-		return;
-	}
-
 	from = transform_num(from);
 	to = transform_num(to);
 
@@ -688,14 +693,13 @@ void basic_graph::delete_edge(int from, int to)
 {
 	int vert = get_count_vertex();
 
-	if ((from > vert) || (to > vert) || (from < 1) || (to < 1))
+	from = transform_num(from);
+	to = transform_num(to);
+
+	if ((from == ERROR) || (to == ERROR))
 	{
-		cout << "Error, the value is out of range" << endl;
 		return;
 	}
-
-	--from;
-	--to;
 
 	if (matrix.at(from).at(to) != 0)
 	{
@@ -965,12 +969,6 @@ void basic_graph::make_vertex_identification(int first, int second)
 {
 	int vert = get_count_vertex();
 
-	if ((first > vert) || (second > vert) || (first < 1) || (second < 1))
-	{
-		cout << "Error: we haven't so vertex" << endl;
-		return;
-	}
-
 	first = transform_num(first);
 	second = transform_num(second);
 	if ((first == ERROR) || (second == ERROR))
@@ -998,7 +996,7 @@ void basic_graph::make_vertex_identification(int first, int second)
 
 	for (int i = 0; i < vert; ++i)
 	{
-		if (matrix.at(first).at(i) == 0)
+		if ((matrix.at(first).at(i) == 0) && (first != i))
 		{
 			matrix.at(first).at(i) += matrix.at(second).at(i);
 		}
@@ -1006,7 +1004,7 @@ void basic_graph::make_vertex_identification(int first, int second)
 
 	for (int i = 0; i < vert; ++i)
 	{
-		if (matrix.at(i).at(first) == 0)
+		if ((matrix.at(i).at(first) == 0) && (first != i))
 		{
 			matrix.at(i).at(first) += matrix.at(i).at(second);
 		}
@@ -1019,13 +1017,13 @@ void basic_graph::make_vertex_identification(int first, int second)
 void basic_graph::make_vertex_dublicate(int number_of_vertex)
 {
 	int vert = get_count_vertex();
-	if ((number_of_vertex > vert) || (number_of_vertex < 1))
-	{
-		cout << "Error: The value is out of range" << endl;
-		return;
-	}
 
 	number_of_vertex = transform_num(number_of_vertex);
+
+	if (number_of_vertex == ERROR)
+	{
+		return;
+	}
 	
 	int num = get_unused_user_num();
 	add_vertex(num);
@@ -1051,12 +1049,6 @@ void basic_graph::make_vertex_dublicate(int number_of_vertex)
 void basic_graph::make_proliferation_with(int number_of_vertex)
 {
 	int vert = get_count_vertex();
-
-	if ((number_of_vertex > vert) || (number_of_vertex < 1))
-	{
-		cout << "Error: The value is out of range" << endl;
-		return;
-	}
 
 	make_vertex_dublicate(number_of_vertex);
 	number_of_vertex = transform_num(number_of_vertex);
