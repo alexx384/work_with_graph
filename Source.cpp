@@ -115,7 +115,7 @@ int main()
 int first(int type_of_graph)
 {
 	normal_graph new_graph(type_of_graph, "first_matrix.txt");
-	normal_graph new_second(INCIDENCE_MATR, "second_matrix.txt");
+	normal_graph new_second(ADJACENCY_MATR, "second_matrix.txt");
 
 	int user_number;
 
@@ -165,6 +165,7 @@ int first(int type_of_graph)
 		cout << setw(40) << "31 = BFS" << endl;
 		cout << setw(40) << "32 = DFS" << endl;
 		cout << setw(40) << "33 = Topological sort" << endl;
+		cout << setw(40) << "34 = kruskal_algorithm" << endl;
 
 		cin >> user_number;
 		system("cls");
@@ -290,7 +291,7 @@ int first(int type_of_graph)
 		{
 			cout << "Enter the vertex number: ";
 			cin >> user_number;
-			new_graph.BFS(user_number);	break;
+			new_graph.algorithm_BFS(user_number);	break;
 		}
 		case 32:
 		{
@@ -298,7 +299,8 @@ int first(int type_of_graph)
 			cin >> user_number;
 			new_graph.DFS_search(user_number);	break;
 		}
-		case 33: new_graph.topological_sort(); break;
+		case 33: new_graph.topological_sort(NULL, NULL); break;
+		case 34: new_graph.kruskal_algorithm(); break;
 		default:
 			break;
 		}
@@ -356,6 +358,10 @@ int second(int type_of_graph)
 		cout << setw(40) << "29 = Exit" << endl;
 		cout << setw(40) << "31 = BFS" << endl;
 		cout << setw(40) << "32 = DFS" << endl;
+		cout << setw(40) << "33 = topological_sort" << endl;
+		cout << setw(40) << "34 = non_loop_search" << endl;
+		cout << setw(40) << "35 = ford_fulkerson" << endl;
+		cout << setw(40) << "36 = floyd_alg" << endl;
 
 		cin >> user_number;
 		system("cls");
@@ -480,7 +486,7 @@ int second(int type_of_graph)
 		{
 			cout << "Enter the vertex number: ";
 			cin >> user_number;
-			new_graph.BFS(user_number);	break;
+			new_graph.algorithm_BFS(user_number);	break;
 		}
 		case 32:
 		{
@@ -488,7 +494,26 @@ int second(int type_of_graph)
 			cin >> user_number;
 			new_graph.DFS_search(user_number);	break;
 		}
-		case 33: new_graph.topological_sort(); break;
+		case 33: new_graph.topological_sort(NULL, NULL); break;
+		case 34:
+		{
+			cout << "From ";
+			cin >> from;
+			cout << endl << "To ";
+			cin >> to;
+			new_graph.non_loop_search(from, to); break;
+		}
+		case 35: new_graph.ford_fulkerson();	break;
+		case 36:
+		{
+			
+			cout << "From ";
+			cin >> from;
+			cout << endl << "To ";
+			cin >> to;
+			
+			new_graph.floyd_alg(from, to); break;
+		}
 		default:
 			break;
 		}

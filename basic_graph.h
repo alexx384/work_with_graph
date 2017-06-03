@@ -49,14 +49,31 @@ public:
 	void make_graph_product_with(std::vector<std::vector<int>> *external_matrix);
 
 //Experimental
-	void BFS(int node_num);
+	void BFS(int node_num, std::vector<std::vector<int>> *temp_matrix,
+		std::vector<int> *used);
+	void algorithm_BFS(int node_num);
 	void DFS(int node_num, int *used, std::queue<int> *path);
 	void DFS_search(int node_start);
-	int floyd_alg();
-	bool topological_sort();
+	int floyd_alg(int start_n, int end_n);
+	std::vector<std::vector<int>> * topological_sort(int *start_node, int *end_node);
 	bool DFS_for_topological(int node_num, int *color, std::stack<int> *stack_vert);
+	void non_loop_search(int start_num, int end_num);
 
+	int DFS_for_ford_fulkers(int node_num, int end_node, int cmin, int *used, std::vector<std::vector<int>> *temp_matrix);
+	void ford_fulkerson();
 	int get_unused_user_num();
+
+	struct
+	{
+		int weight;
+		int first;
+		int second;
+	}typedef edge_struct;
+
+	int basic_graph::DFS_for_kruskal(int node_num, int *used, int search_edge,
+		std::vector<std::vector<int>> *temp_matrix);
+	std::deque<edge_struct> * get_edges();
+	void kruskal_algorithm();
 
 protected:
 	

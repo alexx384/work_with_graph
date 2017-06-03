@@ -180,6 +180,98 @@ int basic_graph::del_user_num(int num)
 	return ERROR;
 }
 
+int basic_graph::DFS_for_ford_fulkers(int node_num, int end_node, int cmin, int *used, vector<vector<int>> *temp_matrix)
+{
+	if (node_num == end_node)	return cmin;
+	 
+	used[node_num] = true;
+	int delta = 0;
+	for (int i = 0; i < matrix.at(node_num).size(); ++i)
+	{
+		if (((*temp_matrix)[node_num][i] > 0) && (node_num != i))
+		{
+			used[i] = false;
+			delta += DFS_for_ford_fulkers(i, end_node, min(cmin, (*temp_matrix)[node_num][i]), used, temp_matrix);
+			if ((delta > 0) && ((*temp_matrix)[node_num][i] >= delta))
+			{
+				(*temp_matrix)[node_num][i] -= delta;
+			}
+		}
+	}
+	return min(cmin, delta);
+}
+
+void basic_graph::ford_fulkerson()
+{
+	int vert = get_count_vertex();
+
+	int source = -1;
+	int sink = -1;
+
+	for (int row = 0; row < vert; ++row)
+	{
+		int temp = 0;
+		for (int col = 0; col < vert; ++col)
+		{
+			temp += matrix[col][row];
+		}
+		if (temp == 0)
+		{
+			source = row;
+		}
+
+		temp = 0;
+		for (int col = 0; col < vert; ++col)
+		{
+			temp += matrix[row][col];
+		}
+		if (temp == 0)
+		{
+			sink = row;
+		}
+	}
+
+	if ((source == -1) || (sink == -1))
+	{
+		cout << "error" << endl;
+		return;
+	}
+
+	cout << "source " << untransform_num(source) << endl;
+	cout << "sink " << untransform_num(sink) << endl;
+
+	int cmin = 0;
+	for (int i = 0; i < vert; ++i)
+	{
+		cmin += matrix[source][i];
+	}
+
+	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
+	int *used = new int[vert];
+	for (int row = 0; row < vert; ++row)
+	{
+		used[row] = false;
+		for (int col = 0; col < vert; ++col)
+		{
+			temp_matrix[row][col] = matrix[row][col];
+		}
+	}
+	
+	cout << DFS_for_ford_fulkers(source, sink, cmin, used, &temp_matrix) << endl;
+	delete[] used;
+
+	cout << endl;
+
+	for (int row = 0; row < vert; ++row)
+	{
+		for (int col = 0; col < vert; ++col)
+		{
+			cout << temp_matrix[row][col] << '/' << matrix[row][col] << ' ';
+		}
+		cout << endl;
+	}
+}
+
 int basic_graph::get_unused_user_num()
 {
 	int size = user_vert.size();
@@ -199,6 +291,125 @@ int basic_graph::get_unused_user_num()
 	}
 
 	return prev;
+}
+
+deque<basic_graph::edge_struct> * basic_graph::get_edges()
+{
+	int vert = get_count_vertex();
+	vector< vector <int>> temp_matrix(vert, vector<int>(vert));
+
+	auto cmp = [](edge_struct left, edge_struct right)
+	{
+		return left.weight < right.weight;
+	};
+	//priority_queue<edge_struct, vector<edge_struct>, decltype(cmp)> q_prior(cmp);
+
+	deque<edge_struct> *q_prior = new deque<edge_struct>;
+
+	for (int col = 0; col < vert; ++col)
+	{
+		for (int row = 0; row < vert; ++row)
+		{
+			if (temp_matrix.at(row).at(col) == 0)
+			{
+				if (matrix.at(row).at(col) != 0)
+				{
+					edge_struct new_edge;
+					new_edge.first = row;
+					new_edge.second = col;
+					new_edge.weight = matrix.at(row).at(col);
+					q_prior->push_front(new_edge);
+				}
+				temp_matrix.at(row).at(col) = 1;
+				if (!is_oriented)
+				{
+					temp_matrix.at(col).at(row) = 1;
+				}
+			}
+		}
+	}
+	temp_matrix.clear();
+
+	sort(q_prior->begin(), q_prior->end(), cmp);
+
+	/*while (!q_prior.empty())
+	{
+		cout << q_prior.back().weight << endl;
+		q_prior.pop_back();
+	}*/
+
+	return q_prior;
+}
+
+int basic_graph::DFS_for_kruskal(int node_num, int *used, int search_edge,
+	vector<vector<int>> *temp_matrix)
+{
+	if (node_num == search_edge)	return ERROR;
+	
+	if (used[node_num] != 0)		return NO_ERROR;
+
+	used[node_num] = 1;
+	
+	int ret_val = NO_ERROR;
+
+	for (int i = 0; i < temp_matrix->at(node_num).size(); ++i)
+	{
+		if ((temp_matrix->at(node_num).at(i) > 0) && (node_num != i) && (used[i] == 0))
+			ret_val += DFS_for_kruskal(i, used, search_edge, temp_matrix);
+	}
+	return ret_val;
+}
+
+void basic_graph::kruskal_algorithm()
+{
+	deque<edge_struct> *q_edge = get_edges();
+
+	int vert = get_count_vertex();
+	int *used = new int[vert];
+	int *tmp_used = new int[vert];
+	memset(used, 0, vert * sizeof(int));
+
+	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
+
+	int i = 0;
+	for(edge_struct cur_edge: *q_edge)
+	{
+		int start_edge = cur_edge.first;
+		int end_edge = cur_edge.second;
+		int weight = cur_edge.weight;
+
+		//Reapair on cycle
+		if (!used[start_edge] && !used[end_edge])
+		{
+			memset(tmp_used, 0, vert * sizeof(int));
+
+			//The cycle may happen. So reapair on it 
+			//IF "NO_ERROR" the cycle doesn't exist so we can the new vertex
+			if (DFS_for_kruskal(start_edge, tmp_used, end_edge, &temp_matrix) == NO_ERROR)
+			{
+				temp_matrix[start_edge][end_edge] = weight;
+				if (!is_oriented)
+				{
+					temp_matrix[end_edge][start_edge] = weight;
+				}
+			}
+		} else {
+			//Cycle doesn't exist so add the new edge
+			temp_matrix[start_edge][end_edge] = weight;
+			if (!is_oriented)
+			{
+				temp_matrix[end_edge][start_edge] = weight;
+			}
+		}
+		++i;
+	}
+	
+	//show result matrix. The main matrix is doesn't change
+	show_external_matrix(&temp_matrix);
+
+	delete q_edge;
+	delete[] used;
+	delete[] tmp_used;
 }
 
 int basic_graph::get_count_vertex()
@@ -595,14 +806,14 @@ void basic_graph::show_length_of_radius()
 
 void basic_graph::show_length_of_diameter()
 {
-	/*vector<vector<int>> *diameter = get_length_of_diameter();
+	vector<vector<int>> *diameter = get_length_of_diameter();
 
 	for (int i = 0; i < diameter->size(); i++)
 	{
 		cout << "The diameter is " << diameter->at(i).back() << endl;
 	}
-	delete diameter;*/
-	cout << "The diameter is " << floyd_alg() << endl;
+	delete diameter;
+	//cout << "The diameter is " << floyd_alg() << endl;
 	cout << "Warning: the value might be incorrect, because we couldn't " << endl;
 	cout << "take into account all the connectivity components" << endl;
 }
@@ -618,7 +829,7 @@ void basic_graph::show_center_number()
 		for (int i = 0; i < radius->at(size).size(); ++i)
 		{
 			if (get_eccentricity_of(radius->at(size).at(i)) == len_radius)
-				cout << "center is " << transform_num(radius->at(size).at(i)) << endl;
+				cout << "center is " << untransform_num(radius->at(size).at(i)) << endl;
 		}
 	}
 	delete radius;
@@ -635,7 +846,7 @@ void basic_graph::show_peripheral_number()
 		for (int i = 0; i < diameter->at(size).size(); ++i)
 		{
 			if (get_eccentricity_of(diameter->at(size).at(i)) == len_diam)
-				cout << "peripheral is " << transform_num(diameter->at(size).at(i)) << endl;
+				cout << "peripheral is " << untransform_num(diameter->at(size).at(i)) << endl;
 		}
 	}
 	delete diameter;
@@ -982,18 +1193,6 @@ void basic_graph::make_vertex_identification(int first, int second)
 		return;
 	}
 
-	/*
-	Убрать вверху условие
-	if (first == second)
-	{
-		if (!is_oriented)
-		{
-			matrix.at(first).at(second) -= 1;
-		}
-		matrix.at(first).at(second) -= 1;
-		return;
-	}*/
-
 	for (int i = 0; i < vert; ++i)
 	{
 		if ((matrix.at(first).at(i) == 0) && (first != i))
@@ -1144,7 +1343,7 @@ void basic_graph::make_graph_product_with(std::vector<std::vector<int>>* externa
 	}
 }
 
-void basic_graph::BFS(int node_num)
+void basic_graph::algorithm_BFS(int node_num)
 {
 	int vert = get_count_vertex();
 
@@ -1154,16 +1353,33 @@ void basic_graph::BFS(int node_num)
 		return;
 	}
 
-	queue<int> turn;
 	vector<int> used(vert);
-	vector<int> path(vert);
+	//vector<int> path(vert);
+	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
+
 	int num_path = 1;
 
-	--node_num;
+	node_num = transform_num(node_num);
 
-	path[0] = node_num;
+	BFS(node_num, &temp_matrix, &used);
+	cout << endl;
+
+	show_external_matrix(&temp_matrix);
+}
+
+void basic_graph::BFS(int node_num, vector<vector<int>> *temp_matrix,
+	vector<int> *used)
+{
+	int vert = get_count_vertex();
+
+	queue<int> turn;
+
+//	vector<int> path(vert);
+	int num_path = 1;
+
+	//path[0] = node_num;
 	turn.push(node_num);
-	used.at(node_num) = 1;
+	(*used).at(node_num) = 1;
 
 	while (!turn.empty()) 
 	{
@@ -1172,17 +1388,26 @@ void basic_graph::BFS(int node_num)
 		//cout << (ind+1) << ' ';
 		for (int i = 0; i < vert; ++i)
 		{
-			if ((matrix[ind][i] > 0) && (ind != i) && (used.at(i) == 0))
+			if ((matrix[ind][i] > 0) && (ind != i) && ((*used).at(i) == 0))
 			{
+				(*temp_matrix)[ind][i] = matrix[ind][i];
+				cout << ind << "->" << i << endl;
+			//	(*temp_matrix)[i][ind] = matrix[ind][i];
 				turn.push(i);
-				path[num_path] = i;
+				//path[num_path] = i;
 				++num_path;
-				used.at(i) = 1;
+				(*used).at(i) = 1;
 			}
 		}
 	}
 
 	for (int i = 0; i < vert; ++i)
+	{
+		if ((*used)[i] == 0)
+			BFS(i, temp_matrix, used);
+	}
+
+	/*for (int i = 0; i < vert; ++i)
 	{
 		matrix[i].assign(vert, 0);
 	}
@@ -1197,7 +1422,7 @@ void basic_graph::BFS(int node_num)
 
 		cout << path[i] + 1 << " -> ";
 	}
-	cout << path[num_path - 1] + 1 << endl;
+	cout << path[num_path - 1] + 1 << endl;*/
 }
 
 void basic_graph::DFS(int node_num, int *used, queue<int> *path)
@@ -1262,42 +1487,70 @@ void basic_graph::DFS_search(int node_start)
 	delete used;
 }
 
-int basic_graph::floyd_alg()
+int basic_graph::floyd_alg(int start_n, int end_n)
 {
+#define INF 20000000
+
 	int vert = get_count_vertex();
 	int max_val = 0;
 
-	vector< vector< int>> temp_matrix(vert);
+	start_n = transform_num(start_n);
+	end_n = transform_num(end_n);
+
+	vector< vector< int>> temp_matrix(vert, vector<int>(vert));
+	vector< vector< int>> parent_matrix(vert, vector<int>(vert));
 	for (int row = 0; row  < vert; ++row)
 	{
 		for (int col = 0; col < vert; ++col)
 		{
-			temp_matrix.at(row).at(col) = matrix.at(row).at(col);
+			if (matrix.at(row).at(col) == 0)
+			{
+				temp_matrix.at(row).at(col) = INF;
+			} else {
+				temp_matrix.at(row).at(col) = matrix.at(row).at(col);
+			}
+			parent_matrix[row][col] = col;
 		}
 	}
 
 	for (int k = 0; k < vert; ++k) {
 		for (int i = 0; i < vert; ++i) {
 			for (int j = 0; j < vert; ++j) {
-				if (i != j && temp_matrix.at(i).at(k) != 0 && temp_matrix.at(k).at(j) != 0) {
-					if (temp_matrix.at(i).at(j) == 0) {
-						temp_matrix.at(i).at(j) = temp_matrix.at(i).at(k) + temp_matrix.at(k).at(j);
-					}
-					else
+				if (i != j && temp_matrix.at(i).at(k) != INF && temp_matrix.at(k).at(j) != INF) {
+					if (temp_matrix.at(i).at(j) == INF) 
 					{
-						temp_matrix.at(i).at(j) = min(temp_matrix.at(i).at(j), temp_matrix.at(i).at(k) + temp_matrix.at(k).at(j));
+						temp_matrix.at(i).at(j) = temp_matrix.at(i).at(k) + temp_matrix.at(k).at(j);
+						parent_matrix[i][j] = parent_matrix[i][k];
+					} else {
+						if (temp_matrix.at(i).at(j) > temp_matrix.at(i).at(k) + temp_matrix.at(k).at(j))
+						{
+							temp_matrix.at(i).at(j) = temp_matrix.at(i).at(k) + temp_matrix.at(k).at(j);
+							parent_matrix[i][j] = parent_matrix[i][k];
+						}
 					}
 				}
 			}
 		}
 	}
-	for (int i = 0; i < vert; ++i)
+
+	show_external_matrix(&temp_matrix);
+	cout << endl;
+	show_external_matrix(&parent_matrix);
+
+	if (parent_matrix[start_n][end_n] == end_n)
 	{
-		for (int j = 0; j < vert; ++j)
-		{
-			if (temp_matrix.at(i).at(j) > max_val) max_val = temp_matrix.at(i).at(j);
-		}
+		cout << "error the path is not found" << endl;
+		return 0;
 	}
+
+	cout << temp_matrix[start_n][end_n] << endl;
+
+	while (parent_matrix[start_n][end_n] != start_n)
+	{
+		cout << untransform_num(start_n) << "->";
+		start_n = parent_matrix[start_n][end_n];
+	}
+	cout << untransform_num(end_n) << endl;
 	//cout << max_val << endl;
 	return max_val;
 }
@@ -1323,7 +1576,105 @@ bool basic_graph::DFS_for_topological(int node_num, int *color, stack<int> *stac
 	return false;
 }
 
-bool basic_graph::topological_sort()
+void basic_graph::non_loop_search(int start_num, int end_num)
+{
+#define INF 200000000
+
+	int vert = get_count_vertex();
+
+	start_num = transform_num(start_num);
+	end_num = transform_num(end_num);
+	if ((start_num == ERROR) && (end_num == ERROR))
+	{
+		return;
+	}
+
+	vector<num_vert> temp_user_vert(vert);
+	for (int i = 0; i < vert; ++i)
+	{
+		temp_user_vert[i] = user_vert[i];
+	}
+
+	vector<vector<int>> *result_matrix = topological_sort(&start_num, &end_num);
+	if (!result_matrix)
+	{
+		cout << "Error: something went wrong" << endl;
+		return;
+	}
+
+	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
+	cout << "after topological sort" << endl;
+	for (int row = 0; row < vert; ++row)
+	{
+		for (int col = 0; col < vert; ++col)
+		{
+			if ((*result_matrix)[row][col] > 0)
+			{
+				temp_matrix[row][col] = (*result_matrix)[row][col];
+				cout << temp_matrix[row][col] << ' ';
+			} else {
+				cout << "0 ";
+				temp_matrix[row][col] = INF;
+			}
+		}
+		cout << endl;
+	}
+	
+	delete result_matrix;
+
+	vector<int> dist(vert, INF);
+	vector<int> path(vert);
+	dist[start_num] = 0;
+	for (int pos = start_num; pos < end_num; ++pos)
+	{
+		for (int w = pos; w < end_num; ++w)
+		{
+			if (dist[pos+1] > dist[pos] + temp_matrix[pos][w+1])
+			{
+				dist[pos + 1] = dist[pos] + temp_matrix[pos][w+1];
+				path[pos] = pos;
+		//		cout << pos << "->";
+			}
+		}
+	}
+	path[end_num] = end_num;
+
+	cout << endl;
+	
+	for (int i = start_num; i < end_num; ++i)
+	{
+		cout << untransform_num(path[i]) << "->";
+	}
+
+	/*for (int i = start_num; i < end_num; ++i)
+	{
+		path[i] = untransform_num(path[i]);
+	}*/
+	cout << untransform_num(path[end_num]) << endl;
+	
+	for (int i = 0; i < vert; ++i)
+	{
+		user_vert[i] = temp_user_vert[i];
+	}
+
+	/*for (int i = ; i < vert; ++i)
+	{
+		if (matrix[transform_num(path[i-1])][transform_num(path[i])])
+		{
+
+		}
+	}*/
+
+
+	if (dist[end_num] >= INF)
+	{
+		cout << "Error: The vertices in different connected component" << endl;
+	} else {
+		cout << "the length is " << dist[end_num] << endl;
+	}
+}
+
+vector<vector<int>> * basic_graph::topological_sort(int *start_node, int *end_node)
 {
 	int vert = get_count_vertex();
 	bool Cycle;
@@ -1336,15 +1687,67 @@ bool basic_graph::topological_sort()
 		if (Cycle)
 		{
 			delete[] color;
-			return false;
+			return nullptr;
 		}
 	}
+	delete[] color;
+
+	int start_n = 0, end_n = 0;
+	if (start_node)
+	{
+		start_n = *start_node;
+	}
+	if (start_node)
+	{
+		end_n = *end_node;
+	}
+
+	vector<int> temp_arr(vert);
 	for (int i = 0; i < vert; ++i)
 	{
-		cout << i << ") " << stack_vert.top() << endl;
+		int temp = stack_vert.top();
+		temp_arr[i] = temp;
+		cout << i << ") " << temp << endl;
+
+		if (temp == start_n && start_node)
+		{
+			*start_node = i;
+		}
+
+		if (temp == end_n && end_node)
+		{
+			*end_node = i;
+		}
+
+		user_vert[i].num = temp + 1;
+		//user_vert[i].cur_num = temp;
+
 		stack_vert.pop();
 	}
 
-	delete[] color;
-	return true;
+	vector<vector<int>> *result_matrix = new vector<vector<int>>;
+	result_matrix->resize(vert);
+	for (int i = 0; i < vert; ++i)
+	{
+		(*result_matrix)[i].resize(vert);
+	}
+
+	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
+	for (int i = 0; i < vert; ++i)
+	{
+		for (int pos = 0; pos < vert; ++pos)
+		{
+			temp_matrix[i][pos] = matrix[temp_arr[i]][temp_arr[pos]];
+		}
+	}
+
+	for (int row = 0; row < vert; ++row)
+	{
+		for (int col = 0; col < vert; ++col)
+		{
+			(*result_matrix)[row][col] = temp_matrix[row][col];
+		}
+	}
+	return result_matrix;
 }
+
