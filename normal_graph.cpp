@@ -113,7 +113,7 @@ void normal_graph::build_ostov_prims()
 
 	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
 
-	const int INF = 1000000000; // значение "бесконечность"
+//	const int INF = 1000000000; // значение "бесконечность"
 
 	for (int row = 0; row < vert; ++row)
 	{

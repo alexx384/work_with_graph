@@ -27,8 +27,7 @@ void basic_graph::adjacency_matrix(std::ifstream *work_file, std::vector<std::ve
 	{
 		for (int col = 0; col < len; ++col)
 		{
-			(*work_file) >> buff;
-			(*matrix).at(row).at(col) = atoi(buff);
+			(*work_file) >> (*matrix).at(row).at(col);
 		}
 	}
 }
@@ -180,10 +179,11 @@ int basic_graph::del_user_num(int num)
 	return ERROR;
 }
 
-int basic_graph::DFS_for_ford_fulkers(int node_num, int end_node, int cmin, int *used, vector<vector<int>> *temp_matrix)
+int basic_graph::DFS_for_ford_fulkers(int node_num, int end_node, int cmin, int *used, 
+	vector<vector<int>> *temp_matrix, int back_vert)
 {
 	if (node_num == end_node)	return cmin;
-	 
+
 	used[node_num] = true;
 	int delta = 0;
 	for (int i = 0; i < matrix.at(node_num).size(); ++i)
@@ -191,13 +191,21 @@ int basic_graph::DFS_for_ford_fulkers(int node_num, int end_node, int cmin, int 
 		if (((*temp_matrix)[node_num][i] > 0) && (node_num != i))
 		{
 			used[i] = false;
-			delta += DFS_for_ford_fulkers(i, end_node, min(cmin, (*temp_matrix)[node_num][i]), used, temp_matrix);
-			if ((delta > 0) && ((*temp_matrix)[node_num][i] >= delta))
+			int res_min = min(cmin, (*temp_matrix)[node_num][i]);
+			delta += DFS_for_ford_fulkers(i, end_node, res_min, used,
+				temp_matrix, node_num);
+
+			if (delta > 0)
 			{
-				(*temp_matrix)[node_num][i] -= delta;
+				(*temp_matrix)[node_num][i] += delta;
+				if (back_vert != -1)
+				{
+					(*temp_matrix)[back_vert][node_num] -= delta;
+				}
 			}
 		}
 	}
+
 	return min(cmin, delta);
 }
 
@@ -257,7 +265,7 @@ void basic_graph::ford_fulkerson()
 		}
 	}
 	
-	cout << DFS_for_ford_fulkers(source, sink, cmin, used, &temp_matrix) << endl;
+	cout << DFS_for_ford_fulkers(source, sink, cmin, used, &temp_matrix, -1) << endl;
 	delete[] used;
 
 	cout << endl;
@@ -354,7 +362,7 @@ int basic_graph::DFS_for_kruskal(int node_num, int *used, int search_edge,
 
 	for (int i = 0; i < temp_matrix->at(node_num).size(); ++i)
 	{
-		if ((temp_matrix->at(node_num).at(i) > 0) && (node_num != i) && (used[i] == 0))
+		if ((temp_matrix->at(node_num).at(i) != 0) && (node_num != i) && (used[i] == 0))
 			ret_val += DFS_for_kruskal(i, used, search_edge, temp_matrix);
 	}
 	return ret_val;
@@ -1063,7 +1071,12 @@ void basic_graph::show_external_matrix(std::vector<std::vector<int>>* external_m
 		cout << row + 1 << '|';
 		for (int col = 0; col < len; ++col)
 		{
-			cout << ' ' << external_matrix->at(row).at(col);
+			if (external_matrix->at(row).at(col) == INF)
+			{
+				cout << ' ' << '*';
+			} else {
+				cout << ' ' << external_matrix->at(row).at(col);
+			}
 		}
 		cout << endl;
 	}
@@ -1388,7 +1401,7 @@ void basic_graph::BFS(int node_num, vector<vector<int>> *temp_matrix,
 		//cout << (ind+1) << ' ';
 		for (int i = 0; i < vert; ++i)
 		{
-			if ((matrix[ind][i] > 0) && (ind != i) && ((*used).at(i) == 0))
+			if ((matrix[ind][i] != 0) && (ind != i) && ((*used).at(i) == 0))
 			{
 				(*temp_matrix)[ind][i] = matrix[ind][i];
 				cout << ind << "->" << i << endl;
@@ -1436,7 +1449,7 @@ void basic_graph::DFS(int node_num, int *used, queue<int> *path)
 //	if (v == finish) - if path was found 
 	for (int i = 0; i < matrix.at(node_num).size(); ++i)  
 	{
-		if((matrix.at(node_num).at(i) > 0) && (node_num != i) && (used[i] == 0))
+		if((matrix.at(node_num).at(i) != 0) && (node_num != i) && (used[i] == 0))
 			DFS(i, used, path);  
 	}
 }
@@ -1489,8 +1502,6 @@ void basic_graph::DFS_search(int node_start)
 
 int basic_graph::floyd_alg(int start_n, int end_n)
 {
-#define INF 20000000
-
 	int vert = get_count_vertex();
 	int max_val = 0;
 
@@ -1503,7 +1514,7 @@ int basic_graph::floyd_alg(int start_n, int end_n)
 	{
 		for (int col = 0; col < vert; ++col)
 		{
-			if (matrix.at(row).at(col) == 0)
+			if ((matrix.at(row).at(col) == 0) && (row != col))
 			{
 				temp_matrix.at(row).at(col) = INF;
 			} else {
@@ -1564,7 +1575,7 @@ bool basic_graph::DFS_for_topological(int node_num, int *color, stack<int> *stac
 	
 	for (int i = 0; i < matrix.at(node_num).size(); ++i)
 	{
-		if ((matrix.at(node_num).at(i) > 0) && (node_num != i))
+		if ((matrix.at(node_num).at(i) != INF) && (node_num != i))
 		{
 			if (DFS_for_topological(i, color, stack_vert) == true)
 				return true;
@@ -1578,8 +1589,6 @@ bool basic_graph::DFS_for_topological(int node_num, int *color, stack<int> *stac
 
 void basic_graph::non_loop_search(int start_num, int end_num)
 {
-#define INF 200000000
-
 	int vert = get_count_vertex();
 
 	start_num = transform_num(start_num);
@@ -1604,22 +1613,9 @@ void basic_graph::non_loop_search(int start_num, int end_num)
 
 	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
 	cout << "after topological sort" << endl;
-	for (int row = 0; row < vert; ++row)
-	{
-		for (int col = 0; col < vert; ++col)
-		{
-			if ((*result_matrix)[row][col] > 0)
-			{
-				temp_matrix[row][col] = (*result_matrix)[row][col];
-				cout << temp_matrix[row][col] << ' ';
-			} else {
-				cout << "0 ";
-				temp_matrix[row][col] = INF;
-			}
-		}
-		cout << endl;
-	}
-	
+	temp_matrix = *result_matrix;
+	show_external_matrix(&temp_matrix);
+
 	delete result_matrix;
 
 	vector<int> dist(vert, INF);
@@ -1629,49 +1625,61 @@ void basic_graph::non_loop_search(int start_num, int end_num)
 	{
 		for (int w = pos; w < end_num; ++w)
 		{
-			if (dist[pos+1] > dist[pos] + temp_matrix[pos][w+1])
+			if (dist[w+1] > dist[pos] + temp_matrix[pos][w+1])
 			{
-				dist[pos + 1] = dist[pos] + temp_matrix[pos][w+1];
-				path[pos] = pos;
-		//		cout << pos << "->";
+				dist[w + 1] = dist[pos] + temp_matrix[pos][w+1];
+				path[w + 1] = pos;
 			}
 		}
 	}
-	path[end_num] = end_num;
 
 	cout << endl;
 	
-	for (int i = start_num; i < end_num; ++i)
-	{
-		cout << untransform_num(path[i]) << "->";
-	}
-
-	/*for (int i = start_num; i < end_num; ++i)
-	{
-		path[i] = untransform_num(path[i]);
-	}*/
-	cout << untransform_num(path[end_num]) << endl;
-	
 	for (int i = 0; i < vert; ++i)
 	{
-		user_vert[i] = temp_user_vert[i];
+		cout << untransform_num(i) << ' ';
 	}
-
-	/*for (int i = ; i < vert; ++i)
+	cout << endl;
+	for (int i = 0; i < vert; ++i)
 	{
-		if (matrix[transform_num(path[i-1])][transform_num(path[i])])
-		{
+		cout << dist[i] << ' ';
+	}
+	cout << endl;
+	for (int i = 0; i < vert; ++i)
+	{
+		cout << untransform_num(path[i]) << ' ';
+	}
+	cout << endl;
 
-		}
-	}*/
+	stack<int> true_path;
 
+	int cur_num = end_num;
+	true_path.push(end_num);
 
 	if (dist[end_num] >= INF)
 	{
 		cout << "Error: The vertices in different connected component" << endl;
-	} else {
+		user_vert = temp_user_vert;
+		return;
+	} else
+	{
 		cout << "the length is " << dist[end_num] << endl;
 	}
+
+	while (cur_num != start_num)
+	{
+		cur_num = path[cur_num];
+
+		true_path.push(cur_num);
+	}
+
+	while (!true_path.empty())
+	{
+		cout << untransform_num(true_path.top()) << "->";
+		true_path.pop();
+	}
+	
+	user_vert = temp_user_vert;
 }
 
 vector<vector<int>> * basic_graph::topological_sort(int *start_node, int *end_node)
@@ -1680,6 +1688,18 @@ vector<vector<int>> * basic_graph::topological_sort(int *start_node, int *end_no
 	bool Cycle;
 	stack<int> stack_vert;
 	int *color = new int[vert];
+
+	for (int row = 0; row < vert; ++row)
+	{
+		for (int col = 0; col < vert; ++col)
+		{
+			if (matrix[row][col] == 0)
+			{
+				matrix[row][col] = INF;
+			}
+		}
+	}
+
 
 	for (int i = 0; i < vert; ++i)
 	{
@@ -1703,20 +1723,24 @@ vector<vector<int>> * basic_graph::topological_sort(int *start_node, int *end_no
 	}
 
 	vector<int> temp_arr(vert);
+	int done_temp_start = 0;
+	int done_temp_end = 0;
 	for (int i = 0; i < vert; ++i)
 	{
 		int temp = stack_vert.top();
 		temp_arr[i] = temp;
 		cout << i << ") " << temp << endl;
 
-		if (temp == start_n && start_node)
+		if (temp == start_n && start_node && !done_temp_start)
 		{
 			*start_node = i;
+			done_temp_start = 1;
 		}
 
-		if (temp == end_n && end_node)
+		if (temp == end_n && end_node && !done_temp_end)
 		{
 			*end_node = i;
+			done_temp_end = 1;
 		}
 
 		user_vert[i].num = temp + 1;
@@ -1748,6 +1772,7 @@ vector<vector<int>> * basic_graph::topological_sort(int *start_node, int *end_no
 			(*result_matrix)[row][col] = temp_matrix[row][col];
 		}
 	}
+
+	show_external_matrix(result_matrix);
 	return result_matrix;
 }
-

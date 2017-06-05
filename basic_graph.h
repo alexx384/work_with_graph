@@ -17,6 +17,7 @@
 #define ADJACENCY_MATR (1)
 #define INCIDENCE_MATR (2)
 #define ADJACENCY_LIST (3)
+#define INF 200000000
 
 class basic_graph
 {
@@ -59,7 +60,8 @@ public:
 	bool DFS_for_topological(int node_num, int *color, std::stack<int> *stack_vert);
 	void non_loop_search(int start_num, int end_num);
 
-	int DFS_for_ford_fulkers(int node_num, int end_node, int cmin, int *used, std::vector<std::vector<int>> *temp_matrix);
+	int basic_graph::DFS_for_ford_fulkers(int node_num, int end_node, int cmin, int *used,
+		std::vector<std::vector<int>> *temp_matrix, int back_vert);
 	void ford_fulkerson();
 	int get_unused_user_num();
 
