@@ -112,8 +112,7 @@ void normal_graph::build_ostov_prims()
 	int vert = basic_graph::get_count_vertex();
 
 	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
-
-//	const int INF = 1000000000; // значение "бесконечность"
+	vector<vector<int>> result_matrix(vert, vector<int>(vert));
 
 	for (int row = 0; row < vert; ++row)
 	{
@@ -132,42 +131,81 @@ void normal_graph::build_ostov_prims()
 								// алгоритм
 	vector<bool> used(n, false);
 	vector<pair<int, int>> dist(n, make_pair(INF, 0));
-	vector<pair<int, int>> path(n-1);
+	queue<pair<int, int>> path;
 
 	int num_vert = -1;
 
 	dist[0].first = 0;
 	int path_len = 0;
 
-	for (int i = 0; i < n; ++i)
+	for (int cur_iter = 0; cur_iter < n; ++cur_iter)
 	{
 		int min_dist = INF;
 		int row = -1;
-		for (int num_vert = 0; num_vert < n; ++num_vert)
+		for (int cur_num_vert = 0; cur_num_vert < n; ++cur_num_vert)
 		{
 			//We are looking for a minimal edge for unused vertices
-			if (!used[num_vert] && (dist[num_vert].first < min_dist))
+			if (!used[cur_num_vert] && (dist[cur_num_vert].first < min_dist))
 			{
-				min_dist = dist[num_vert].first;
-				row = num_vert;
+				min_dist = dist[cur_num_vert].first;
+				row = cur_num_vert;
 			}
+		}
+
+		if (row == -1)
+		{
+			cout << "Ostov" << endl;
+			//Add edges to "matrix" from the "temp_matrix"
+			int i = -1;
+
+			while (!path.empty())
+			{
+				++i;
+				int start_edge = path.front().first;
+				int end_edge = path.front().second;
+
+				path.pop();
+
+				if (temp_matrix[start_edge][end_edge] == INF)
+					continue;
+
+				result_matrix[start_edge][end_edge] = temp_matrix[start_edge][end_edge];
+				result_matrix[end_edge][start_edge] = temp_matrix[end_edge][start_edge];
+
+				//show path on the screen
+				cout << start_edge << "->" << end_edge << '\t';
+				if (!((i + 1) % 3))
+				{
+					cout << endl;
+				}
+			}
+
+			for (int num_vert = 0; num_vert < n; ++num_vert)
+			{
+				if (dist[num_vert].first == INF)
+				{
+					row = num_vert;
+					min_dist = dist[num_vert].first = 0;
+					dist[num_vert].second = num_vert;
+					break;
+				}
+			}
+			cout << "The length is " << path_len << endl;
+			path_len = 0;
+			num_vert = -1;
+			min_dist = matrix[row][row];
 		}
 
 		//Calculation of results
 		path_len += min_dist;
-	
-		if (num_vert != -1)
-		{
-			path[i - 1].first = dist[row].second;
-			path[i - 1].second = row;
-		}
-		++num_vert;
 
-		if (row == -1)
-		{
-			cout << "Error: There are some connected component" << endl;
-			return;
-		}
+		
+			pair<int, int> new_pair;
+			new_pair.first = dist[row].second;
+			new_pair.second = row;
+			path.push(new_pair);
+		
+		++num_vert;
 
 		used[row] = true;
 		//Recalculate the minimum distances to the new used vert
@@ -181,35 +219,35 @@ void normal_graph::build_ostov_prims()
 		}	
 	}
 
-	cout << "The length is " << path_len << endl;
-	
-	//Assign "temp_matrix" with value of "matrix"
-	//Assign "matrix" with zero
-	for (int row = 0; row < vert; ++row)
-	{
-		for (int col = 0; col < vert; ++col)
-		{
-			temp_matrix[row][col] = matrix[row][col];
-		}
-		matrix[row].assign(vert, 0);
-	}
-
+	cout << "Ostov" << endl;
 	//Add edges to "matrix" from the "temp_matrix"
-	for (int i = 0; i < n-1; ++i)
+	int i = -1;
+
+	while (!path.empty())
 	{
-		int start_edge = path[i].first;
-		int end_edge = path[i].second;
-	
-		matrix[start_edge][end_edge] = temp_matrix[start_edge][end_edge];
-		matrix[end_edge][start_edge] = temp_matrix[end_edge][start_edge];
+		++i;
+		int start_edge = path.front().first;
+		int end_edge = path.front().second;
+
+		path.pop();
+
+		if (temp_matrix[start_edge][end_edge] == INF)
+			continue;
+
+		result_matrix[start_edge][end_edge] = temp_matrix[start_edge][end_edge];
+		result_matrix[end_edge][start_edge] = temp_matrix[end_edge][start_edge];
 
 		//show path on the screen
 		cout << start_edge << "->" << end_edge << '\t';
-		if (!((i+1) % 3))
+		if (!((i + 1) % 3))
 		{
 			cout << endl;
 		}
 	}
+
+	cout << "The length is " << path_len << endl;
+
+	show_external_matrix(&result_matrix);
 }
 
 void normal_graph::adjacency_list(std::ifstream *work_file, std::vector<std::vector <int>> *matrix)

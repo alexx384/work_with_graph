@@ -560,7 +560,7 @@ vector<int> * basic_graph::get_distance_to_all_vertex(int number_of_vertex)
 
 	for (int i = 0; i < dist->size(); ++i)
 	{
-		if ((dist->at(i) < 0) || (dist->at(i) > 2000000000))
+		if ((dist->at(i) < 0) || (dist->at(i) > INF))
 			dist->at(i) = 0;
 	}
 
@@ -585,7 +585,7 @@ std::vector<std::vector<int>>* basic_graph::get_count_of_connected_component()
 			
 			for (int cnt = 0; cnt < vert; cnt++)
 			{
-				if ((check_matrix.at(cnt) == 0) && (distance->at(cnt) > 0) && (distance->at(cnt) < 2000000000))
+				if ((check_matrix.at(cnt) == 0) && (distance->at(cnt) > 0) && (distance->at(cnt) < INF))
 				{
 					exst_cmpnt.push_back(cnt);
 					check_matrix.at(cnt) = 1;
@@ -945,7 +945,7 @@ std::vector<std::vector<int>> * basic_graph::get_length_of_diameter()
 			cur_diam.push_back(connected_component->at(component).at(i));
 
 			size = get_eccentricity_of(connected_component->at(component).at(i));
-			if (size > 2000000000)
+			if (size > INF)
 			{
 				size = 0;
 			}
