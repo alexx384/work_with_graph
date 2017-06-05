@@ -55,7 +55,7 @@ public:
 	void algorithm_BFS(int node_num);
 	void DFS(int node_num, int *used, std::queue<int> *path);
 	void DFS_search(int node_start);
-	int floyd_alg(int start_n, int end_n);
+	int floyd_alg(int start_n, int end_n, int key);
 	std::vector<std::vector<int>> * topological_sort(int *start_node, int *end_node);
 	bool DFS_for_topological(int node_num, int *color, std::stack<int> *stack_vert);
 	void non_loop_search(int start_num, int end_num);
@@ -76,6 +76,8 @@ public:
 		std::vector<std::vector<int>> *temp_matrix);
 	std::deque<edge_struct> * get_edges();
 	void kruskal_algorithm();
+	void DFS_another_non_loop(int node_num, int prev, int prev_weight, int *used, int *dist,
+		int *path, int target);
 
 protected:
 	

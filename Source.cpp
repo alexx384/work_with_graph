@@ -512,7 +512,7 @@ int second(int type_of_graph)
 			cout << endl << "To ";
 			cin >> to;
 			
-			new_graph.floyd_alg(from, to); break;
+			new_graph.floyd_alg(from, to, 1); break;
 		}
 		default:
 			break;

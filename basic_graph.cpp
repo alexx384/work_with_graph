@@ -631,7 +631,12 @@ void basic_graph::show_adjacency_matrix()
 		cout << utrans << '|';
 		for (int col = 0; col < len; ++col)
 		{
-			cout << ' ' << matrix.at(row).at(col);
+			if (matrix.at(row).at(col) == INF)
+			{
+				cout << " *";
+			} else {
+				cout << ' ' << matrix.at(row).at(col);
+			}
 		}
 		cout << endl;
 	}
@@ -1500,7 +1505,7 @@ void basic_graph::DFS_search(int node_start)
 	delete used;
 }
 
-int basic_graph::floyd_alg(int start_n, int end_n)
+int basic_graph::floyd_alg(int start_n, int end_n, int key)
 {
 	int vert = get_count_vertex();
 	int max_val = 0;
@@ -1544,11 +1549,26 @@ int basic_graph::floyd_alg(int start_n, int end_n)
 		}
 	}
 
-	show_external_matrix(&temp_matrix);
-	cout << endl;
-	show_external_matrix(&parent_matrix);
+	if (key == 1)
+	{
+		show_external_matrix(&temp_matrix);
+		cout << endl;
+		show_external_matrix(&parent_matrix);
+	} else {
+	
+		for (int i = 0; i < vert; ++i)
+		{
+			cout << parent_matrix[end_n][i] << ' ';
+		}
+		cout << endl;
+		for (int i = 0; i < vert; ++i)
+		{
+			cout << temp_matrix[end_n][i] << ' ';
+		}
+		cout << endl;
+	}
 
-	if (parent_matrix[start_n][end_n] == end_n)
+	if (parent_matrix[start_n][end_n] == start_n)
 	{
 		cout << "error the path is not found" << endl;
 		return 0;
@@ -1575,7 +1595,8 @@ bool basic_graph::DFS_for_topological(int node_num, int *color, stack<int> *stac
 	
 	for (int i = 0; i < matrix.at(node_num).size(); ++i)
 	{
-		if ((matrix.at(node_num).at(i) != INF) && (node_num != i))
+		int some_num = matrix.at(node_num).at(i);
+		if ((some_num != INF) && (some_num != 0) && (node_num != i))
 		{
 			if (DFS_for_topological(i, color, stack_vert) == true)
 				return true;
@@ -1587,10 +1608,35 @@ bool basic_graph::DFS_for_topological(int node_num, int *color, stack<int> *stac
 	return false;
 }
 
+void basic_graph::DFS_another_non_loop(int node_num, int prev, int prev_weight, int *used, int *dist, 
+	int *path, int target)
+{
+	if (used[node_num] != 0) return;
+
+	path[node_num] = prev;
+	dist[node_num] = prev_weight;
+	used[node_num] = 1;
+
+	if (node_num == target)
+	{
+		return;
+	}
+	//path[node_num] = node_from; 
+	//	if (v == finish) - if path was found 
+	for (int i = 0; i < matrix.at(node_num).size(); ++i)
+	{
+		int res = matrix.at(node_num).at(i);
+		if ((res != 0) && (res != INF) && (node_num != i) && (used[i] == 0))
+			DFS_another_non_loop(i, node_num, prev+res, used, dist, path, target);
+	}
+}
+
 void basic_graph::non_loop_search(int start_num, int end_num)
 {
 	int vert = get_count_vertex();
 
+	int u_start_num = start_num;
+	int u_end_num = end_num;
 	start_num = transform_num(start_num);
 	end_num = transform_num(end_num);
 	if ((start_num == ERROR) && (end_num == ERROR))
@@ -1605,16 +1651,34 @@ void basic_graph::non_loop_search(int start_num, int end_num)
 	}
 
 	vector<vector<int>> *result_matrix = topological_sort(&start_num, &end_num);
+
 	if (!result_matrix)
 	{
-		cout << "Error: something went wrong" << endl;
+		/*int *used = new int[vert];
+		int *dist = new int[vert];
+		int *path = new int[vert];
+		for (int i = 0; i < vert; ++i)
+		{
+			used[i] = 0;
+			dist[i] = INF;
+			path[i] = 0;
+		}
+		DFS_another_non_loop(start_num, start_num, 0, used, dist, path, end_num);
+
+		for (int i = 0; i < vert; ++i)
+		{
+			cout << used[i] << '\t' << dist[i] << '\t' << path[i] << endl;
+		}
+
+		int g = 0;*/
+		floyd_alg(u_start_num, u_end_num, 0);
 		return;
 	}
 
 	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
-	cout << "after topological sort" << endl;
+	//cout << "after topological sort" << endl;
 	temp_matrix = *result_matrix;
-	show_external_matrix(&temp_matrix);
+	//show_external_matrix(&temp_matrix);
 
 	delete result_matrix;
 
@@ -1623,7 +1687,7 @@ void basic_graph::non_loop_search(int start_num, int end_num)
 	dist[start_num] = 0;
 	for (int pos = start_num; pos < end_num; ++pos)
 	{
-		for (int w = pos; w < end_num; ++w)
+		for (int w = start_num; w < end_num; ++w)
 		{
 			if (dist[w+1] > dist[pos] + temp_matrix[pos][w+1])
 			{
@@ -1689,17 +1753,22 @@ vector<vector<int>> * basic_graph::topological_sort(int *start_node, int *end_no
 	stack<int> stack_vert;
 	int *color = new int[vert];
 
+	vector<vector<int>> *result_matrix = new vector<vector<int>>;
+	result_matrix->resize(vert);
+
 	for (int row = 0; row < vert; ++row)
 	{
+		(*result_matrix)[row].resize(vert);
 		for (int col = 0; col < vert; ++col)
 		{
-			if (matrix[row][col] == 0)
+			if ((matrix[row][col] == 0) && (row != col))
 			{
-				matrix[row][col] = INF;
+				(*result_matrix)[row][col] = matrix[row][col] = INF;
+			} else {
+				(*result_matrix)[row][col] = matrix[row][col];
 			}
 		}
 	}
-
 
 	for (int i = 0; i < vert; ++i)
 	{
@@ -1707,6 +1776,7 @@ vector<vector<int>> * basic_graph::topological_sort(int *start_node, int *end_no
 		if (Cycle)
 		{
 			delete[] color;
+			delete result_matrix;
 			return nullptr;
 		}
 	}
@@ -1747,13 +1817,6 @@ vector<vector<int>> * basic_graph::topological_sort(int *start_node, int *end_no
 		//user_vert[i].cur_num = temp;
 
 		stack_vert.pop();
-	}
-
-	vector<vector<int>> *result_matrix = new vector<vector<int>>;
-	result_matrix->resize(vert);
-	for (int i = 0; i < vert; ++i)
-	{
-		(*result_matrix)[i].resize(vert);
 	}
 
 	vector<vector<int>> temp_matrix(vert, vector<int>(vert));
