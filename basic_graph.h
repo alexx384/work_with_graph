@@ -72,12 +72,17 @@ public:
 		int second;
 	}typedef edge_struct;
 
-	int basic_graph::DFS_for_kruskal(int node_num, int *used, int search_edge,
+	int DFS_for_kruskal(int node_num, int *used, int search_edge,
 		std::vector<std::vector<int>> *temp_matrix);
 	std::deque<edge_struct> * get_edges();
 	void kruskal_algorithm();
 	void DFS_another_non_loop(int node_num, int prev, int prev_weight, int *used, int *dist,
 		int *path, int target);
+	void karp();
+	int dinic(int source, int sink);
+	bool dinic_bfs(int t, int s, int *d, int *q, std::vector<std::vector<int>> *f);
+	int dinic_dfs(int v, int flow, int t, int *ptr, std::vector<std::vector<int>> *f, int *d);
+	int second_karp(int s, int t);
 
 protected:
 	

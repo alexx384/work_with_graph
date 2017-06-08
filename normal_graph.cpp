@@ -166,6 +166,11 @@ void normal_graph::build_ostov_prims()
 
 				path.pop();
 
+				if (start_edge == end_edge)
+				{
+					continue;
+				}
+
 				if (temp_matrix[start_edge][end_edge] == INF)
 					continue;
 

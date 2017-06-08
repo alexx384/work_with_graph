@@ -192,15 +192,40 @@ int basic_graph::DFS_for_ford_fulkers(int node_num, int end_node, int cmin, int 
 		{
 			used[i] = false;
 			int res_min = min(cmin, (*temp_matrix)[node_num][i]);
-			delta += DFS_for_ford_fulkers(i, end_node, res_min, used,
+			int ddump;
+			ddump = DFS_for_ford_fulkers(i, end_node, res_min, used,
 				temp_matrix, node_num);
 
-			if (delta > 0)
+			/*if (ddump > 0)
 			{
-				(*temp_matrix)[node_num][i] += delta;
+				(*temp_matrix)[node_num][i] += max(ddump, (*temp_matrix)[node_num][i]);
 				if (back_vert != -1)
 				{
-					(*temp_matrix)[back_vert][node_num] -= delta;
+					(*temp_matrix)[back_vert][node_num] -= min(ddump, (*temp_matrix)[node_num][i]);
+				}
+			}*/
+			delta += ddump;
+		}
+	}
+
+	int razn = delta - cmin;
+	if (razn > 0)
+	{
+		for (int i = 0; i < matrix.size(); i++)
+		{
+			int prev = (*temp_matrix)[node_num][i];
+			if ((*temp_matrix)[node_num][i] >= razn && (*temp_matrix)[node_num][i]!=0 && razn != 0)
+			{
+				int tmp = razn - prev;
+				if (tmp > 0)
+				{
+					(*temp_matrix)[node_num][i] = 0;
+					razn = tmp;
+					continue;
+				} else {
+					(*temp_matrix)[node_num][i] -= razn;
+					razn = 0;
+					break;
 				}
 			}
 		}
@@ -265,19 +290,12 @@ void basic_graph::ford_fulkerson()
 		}
 	}
 	
-	cout << DFS_for_ford_fulkers(source, sink, cmin, used, &temp_matrix, -1) << endl;
+	//cout << DFS_for_ford_fulkers(source, sink, cmin, used, &temp_matrix, -1) << endl;
 	delete[] used;
 
+	cout << dinic(source, sink);
+	//cout << second_karp(source, sink);
 	cout << endl;
-
-	for (int row = 0; row < vert; ++row)
-	{
-		for (int col = 0; col < vert; ++col)
-		{
-			cout << temp_matrix[row][col] << '/' << matrix[row][col] << ' ';
-		}
-		cout << endl;
-	}
 }
 
 int basic_graph::get_unused_user_num()
@@ -1409,8 +1427,12 @@ void basic_graph::BFS(int node_num, vector<vector<int>> *temp_matrix,
 			if ((matrix[ind][i] != 0) && (ind != i) && ((*used).at(i) == 0))
 			{
 				(*temp_matrix)[ind][i] = matrix[ind][i];
+				//(*temp_matrix)[ind][i] = matrix[ind][i];
 				cout << ind << "->" << i << endl;
-			//	(*temp_matrix)[i][ind] = matrix[ind][i];
+				if (!is_oriented)
+				{
+					(*temp_matrix)[i][ind] = matrix[ind][i];
+				}
 				turn.push(i);
 				//path[num_path] = i;
 				++num_path;
@@ -1629,6 +1651,271 @@ void basic_graph::DFS_another_non_loop(int node_num, int prev, int prev_weight, 
 		if ((res != 0) && (res != INF) && (node_num != i) && (used[i] == 0))
 			DFS_another_non_loop(i, node_num, prev+res, used, dist, path, target);
 	}
+}
+
+int move(int *q, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		*(q + i) = (*(q + i + 1));
+	}
+	return (n - 1);
+}
+int add(int *q, int n, int a)
+{
+	*(q + n) = a;
+	return(n + 1);
+}
+
+int basic_graph::second_karp(int s, int t)
+{
+	int m = get_count_vertex();
+	vector <vector<int>> F, C;
+	vector <int> E, h, Pred;
+	F.resize(m + 1);
+	C.resize(m + 1);
+	h.resize(m + 1);
+	E.resize(m + 1);
+	Pred.resize(m + 1);
+	int *que;
+	que = (int *)malloc((m) * sizeof(int));
+	for (int i = 0; i < m; i++)
+	{
+
+		F[i].resize(m + 1);
+		C[i].resize(m + 1);
+		for (int j = 0; j < m; j++)
+		{
+			F[i][j] = 0;
+			C[i][j] = matrix[i][j];
+		}
+	}
+	int flag1 = true;
+	int smpr = -2;
+	int sm = -2;
+	do
+	{
+		smpr = sm;
+		for (int i = 0; i < m; i++)
+		{
+			que[i] = -1;
+			Pred[i] = -1;
+			h[i] = 0;
+			E[i] = 0;
+		}
+		int next = 0;
+		que[next] = s; next++;
+		E[s] = INF; h[s] = +1; Pred[s] = -1;
+		while (next != 0)
+		{
+			int v = que[0];
+			next = move(que, next);
+			for (int i = 0; i < m; i++)
+			{
+				if (h[i] != 0)
+				{
+					continue;
+				}
+				if ((C[v][i] != 0) && (F[v][i] != C[v][i]))
+				{
+					next = add(que, next, i);
+					h[i] = +1;
+					Pred[i] = v;
+					if (E[v] < C[v][i] - F[v][i])
+						E[i] = E[v];
+					else
+						E[i] = C[v][i] - F[v][i];
+				} else if (F[i][v] != 0)
+				{
+					next = add(que, next, i);
+					h[i] = -1;
+					Pred[i] = v;
+					if (E[v] < C[i][v])
+						E[i] = E[v];
+					else
+						E[i] = C[i][v];
+				}
+			}
+		}
+
+		sm = 0;
+		for (int i = 0; i < m; i++)
+		{
+			if (F[i][t] != INF)
+			{
+				sm += F[i][t];
+			}
+		}
+		if (Pred[t] == -1)
+		{
+			return (sm);
+		}
+		int Max = E[t];
+		int v = t;
+		//printf("\nIm in\n");
+		while (Pred[v] != -1)
+		{
+			F[Pred[v]][v] = F[Pred[v]][v] + h[v] * Max;
+			v = Pred[v];
+		}
+		sm = 0;
+		for (int i = 0; i < m; i++)
+		{
+			if (F[i][t] != INF)
+			{
+				sm += F[i][t];
+			}
+		}
+		cout << "Поток:\n";
+		for (int i = 0; i < m; i++)
+		{
+			for (int j = 0; j < m; j++)
+			{
+				cout << F[i][j] << '/' << matrix[i][j] << ends;
+			}
+			cout << endl;
+		}
+	} while (sm != smpr);
+
+	return(sm);
+}
+
+void basic_graph::karp()
+{
+	int n;
+	n = get_count_vertex();
+	vector<vector<int>> f(n, vector<int>(n));
+	
+	// исток - вершина 0, сток - вершина n-1
+	for (;;)
+	{
+
+		vector<int> from(n, -1);
+		vector<int> q(n);
+		int h = 0, t = 0;
+		q[t++] = 0;
+		from[0] = 0;
+		for (int cur; h<t;)
+		{
+			cur = q[h++];
+			for (int v = 0; v<n; v++)
+				if (from[v] == -1 &&
+					matrix[cur][v] - f[cur][v] > 0)
+				{
+					q[t++] = v;
+					from[v] = cur;
+				}
+		}
+
+		if (from[n - 1] == -1)
+			break;
+		int cf = INF;
+		for (int cur = n - 1; cur != 0; )
+		{
+			int prev = from[cur];
+			cf = min(cf, matrix[prev][cur] - f[prev][cur]);
+			cur = prev;
+		}
+
+		for (int cur = n - 1; cur != 0; )
+		{
+			int prev = from[cur];
+			f[prev][cur] += cf;
+			f[cur][prev] -= cf;
+			cur = prev;
+		}
+
+	}
+
+	int flow = 0;
+	for (int i = 0; i<n; i++)
+		if (matrix[0][i])
+			flow += f[0][i];
+
+	cout << flow;
+}
+
+bool basic_graph::dinic_bfs(int t, int s, int *d, int *q, vector<vector<int>> *f)
+{
+	int n = get_count_vertex();
+	int qh = 0, qt = 0;
+	q[qt++] = s;
+	memset(d, -1, n * sizeof d[0]);
+	d[s] = 0;
+	while (qh < qt)
+	{
+		int v = q[qh++];
+		for (int to = 0; to<n; ++to)
+			if (d[to] == -1 && (*f)[v][to] < matrix[v][to])
+			{
+				q[qt++] = to;
+				d[to] = d[v] + 1;
+			}
+	}
+	return d[t] != -1;
+}
+
+int basic_graph::dinic_dfs(int v, int flow, int t, int *ptr, vector<vector<int>> *f, int *d)
+{
+	int n = get_count_vertex();
+	if (!flow)  return 0;
+	if (v == t)  return flow;
+	for (int & to = ptr[v]; to<n; ++to)
+	{
+		if (d[to] != d[v] + 1)  continue;
+		int pushed = dinic_dfs(to, min(flow, matrix[v][to] - (*f)[v][to]), t, ptr, f, d);
+		if (pushed)
+		{
+			(*f)[v][to] += pushed;
+			(*f)[to][v] -= pushed;
+			return pushed;
+		}
+	}
+	return 0;
+}
+
+int basic_graph::dinic(int s, int t)
+{
+	int flow = 0;
+
+	int n = get_count_vertex();
+
+	int *ptr = new int[n];
+	int *q = new int[n];
+	vector<vector<int>> f(n, vector<int>(n));
+	int *d = new int[n];
+
+	for (;;)
+	{
+		if (!dinic_bfs(t,s,d,q,&f))  break;
+		memset(ptr, 0, n * sizeof ptr[0]);
+		while (int pushed = dinic_dfs(s, INF, t, ptr, &f, d))
+			flow += pushed;
+	}
+
+	for (int row = 0; row < n; ++row)
+	{
+		for (int col = 0; col < n; ++col)
+		{
+			if (f[row][col] < 0){
+				f[row][col] = 0;
+			}
+		}
+	}
+
+	for (int row = 0; row < n; ++row)
+	{
+		for (int col = 0; col < n; ++col)
+		{
+			cout << f[row][col] << '/' << matrix[row][col] << ' ';
+		}
+		cout << endl;
+	}
+
+	delete[] ptr;
+	delete[] q;
+	delete[] d;
+	return flow;
 }
 
 void basic_graph::non_loop_search(int start_num, int end_num)
