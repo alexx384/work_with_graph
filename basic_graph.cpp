@@ -1465,19 +1465,24 @@ void basic_graph::BFS(int node_num, vector<vector<int>> *temp_matrix,
 	cout << path[num_path - 1] + 1 << endl;*/
 }
 
-void basic_graph::DFS(int node_num, int *used, queue<int> *path)
+void basic_graph::DFS(int node_num, int *used, queue<pair<int,int>> *path)
 {
 	if (used[node_num] != 0) return;
 	
-	path->push(node_num);
 	used[node_num] = 1;
-	cout << node_num + 1 << " -> ";
 	//path[node_num] = node_from; 
 //	if (v == finish) - if path was found 
 	for (int i = 0; i < matrix.at(node_num).size(); ++i)  
 	{
-		if((matrix.at(node_num).at(i) != 0) && (node_num != i) && (used[i] == 0))
-			DFS(i, used, path);  
+		if ((matrix.at(node_num).at(i) != 0) && (node_num != i) && (used[i] == 0))
+		{
+			pair<int, int> new_edge;
+			new_edge.first = node_num;
+			new_edge.second = i;
+			path->push(new_edge);
+			cout << node_num + 1 << " -> " << i+1 << endl;
+			DFS(i, used, path);
+		}
 	}
 }
 
@@ -1493,7 +1498,7 @@ void basic_graph::DFS_search(int node_start)
 
 	int *used = new int[vert];
 
-	queue<int> path;
+	queue<pair<int,int>> path;
 
 	for (int i = 0; i < vert; ++i)
 	{
@@ -1508,20 +1513,16 @@ void basic_graph::DFS_search(int node_start)
 		matrix[i].assign(vert, 0);
 	}
 
-	int start_num = path.front();
-	path.pop();
-
 	while (!path.empty())
 	{
-		int cur_num = path.front();
+		pair<int, int> cur_edge = path.front();
 		path.pop();
 		
 		if (!is_oriented)
 		{
-			matrix[cur_num][start_num] += 1;
+			matrix[cur_edge.second][cur_edge.first] += 1;
 		}
-		matrix[start_num][cur_num] += 1;
-		start_num = cur_num;
+		matrix[cur_edge.first][cur_edge.second] += 1;
 	}
 
 	delete used;
@@ -1554,7 +1555,7 @@ int basic_graph::floyd_alg(int start_n, int end_n, int key)
 	for (int k = 0; k < vert; ++k) {
 		for (int i = 0; i < vert; ++i) {
 			for (int j = 0; j < vert; ++j) {
-				if (i != j && temp_matrix.at(i).at(k) != INF && temp_matrix.at(k).at(j) != INF) {
+				if (temp_matrix.at(i).at(k) != INF && temp_matrix.at(k).at(j) != INF) {
 					if (temp_matrix.at(i).at(j) == INF) 
 					{
 						temp_matrix.at(i).at(j) = temp_matrix.at(i).at(k) + temp_matrix.at(k).at(j);
@@ -1598,10 +1599,12 @@ int basic_graph::floyd_alg(int start_n, int end_n, int key)
 
 	cout << temp_matrix[start_n][end_n] << endl;
 
-	while (parent_matrix[start_n][end_n] != start_n)
+	int i = 0;
+	while (parent_matrix[start_n][end_n] != start_n && i != vert)
 	{
 		cout << untransform_num(start_n) << "->";
 		start_n = parent_matrix[start_n][end_n];
+		++i;
 	}
 	cout << untransform_num(end_n) << endl;
 	//cout << max_val << endl;

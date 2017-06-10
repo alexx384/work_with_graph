@@ -53,7 +53,7 @@ public:
 	void BFS(int node_num, std::vector<std::vector<int>> *temp_matrix,
 		std::vector<int> *used);
 	void algorithm_BFS(int node_num);
-	void DFS(int node_num, int *used, std::queue<int> *path);
+	void DFS(int node_num, int *used, std::queue<std::pair<int, int>> *path);
 	void DFS_search(int node_start);
 	int floyd_alg(int start_n, int end_n, int key);
 	std::vector<std::vector<int>> * topological_sort(int *start_node, int *end_node);
