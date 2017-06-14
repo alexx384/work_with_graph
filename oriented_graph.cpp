@@ -188,7 +188,7 @@ oriented_graph::oriented_graph(int type_of_graph, char * file_name)
 	user_vert.resize(matrix.size());
 	for (int i = 0; i < matrix.size(); ++i)
 	{
-		user_vert[i].num = i + 1;
+		user_vert[i].num = i+1;
 		user_vert[i].cur_num = i;
 	}
 

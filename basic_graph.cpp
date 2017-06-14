@@ -1080,7 +1080,7 @@ void basic_graph::show_external_matrix(std::vector<std::vector<int>>* external_m
 	cout << "   ";
 	for (int i = 0; i < len; ++i)
 	{
-		cout << i + 1 << ' ';
+		cout << i << ' ';
 	}
 	cout << endl;
 	cout << "===";
@@ -1091,7 +1091,7 @@ void basic_graph::show_external_matrix(std::vector<std::vector<int>>* external_m
 	cout << endl;
 	for (int row = 0; row < len; ++row)
 	{
-		cout << row + 1 << '|';
+		cout << row << '|';
 		for (int col = 0; col < len; ++col)
 		{
 			if (external_matrix->at(row).at(col) == INF)
@@ -1533,8 +1533,11 @@ int basic_graph::floyd_alg(int start_n, int end_n, int key)
 	int vert = get_count_vertex();
 	int max_val = 0;
 
-	start_n = transform_num(start_n);
-	end_n = transform_num(end_n);
+	//start_n = transform_num(start_n);
+	//end_n = transform_num(end_n);
+
+	--start_n;
+	--end_n;
 
 	vector< vector< int>> temp_matrix(vert, vector<int>(vert));
 	vector< vector< int>> parent_matrix(vert, vector<int>(vert));
@@ -1548,7 +1551,7 @@ int basic_graph::floyd_alg(int start_n, int end_n, int key)
 			} else {
 				temp_matrix.at(row).at(col) = matrix.at(row).at(col);
 			}
-			parent_matrix[row][col] = col;
+			parent_matrix[row][col] = row;
 		}
 	}
 
@@ -1559,12 +1562,12 @@ int basic_graph::floyd_alg(int start_n, int end_n, int key)
 					if (temp_matrix.at(i).at(j) == INF) 
 					{
 						temp_matrix.at(i).at(j) = temp_matrix.at(i).at(k) + temp_matrix.at(k).at(j);
-						parent_matrix[i][j] = parent_matrix[i][k];
+						parent_matrix[i][j] = k;
 					} else {
 						if (temp_matrix.at(i).at(j) > temp_matrix.at(i).at(k) + temp_matrix.at(k).at(j))
 						{
 							temp_matrix.at(i).at(j) = temp_matrix.at(i).at(k) + temp_matrix.at(k).at(j);
-							parent_matrix[i][j] = parent_matrix[i][k];
+							parent_matrix[i][j] = k;
 						}
 					}
 				}
@@ -1591,7 +1594,7 @@ int basic_graph::floyd_alg(int start_n, int end_n, int key)
 		cout << endl;
 	}
 
-	if (parent_matrix[start_n][end_n] == start_n)
+	if (temp_matrix[start_n][end_n] >= INF)
 	{
 		cout << "error the path is not found" << endl;
 		return 0;
@@ -1599,14 +1602,16 @@ int basic_graph::floyd_alg(int start_n, int end_n, int key)
 
 	cout << temp_matrix[start_n][end_n] << endl;
 
+	int fo = start_n;
 	int i = 0;
-	while (parent_matrix[start_n][end_n] != start_n && i != vert)
+	while (parent_matrix[start_n][end_n] != end_n && i != vert)
 	{
-		cout << untransform_num(start_n) << "->";
-		start_n = parent_matrix[start_n][end_n];
+		cout << end_n << "<-";
+		end_n = parent_matrix[start_n][end_n];
 		++i;
 	}
-	cout << untransform_num(end_n) << endl;
+
+	cout << end_n << endl;
 	//cout << max_val << endl;
 	return max_val;
 }
